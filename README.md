@@ -1,2 +1,0 @@
-# Bunniez
-PostPC final project
