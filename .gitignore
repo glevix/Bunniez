@@ -1,0 +1,4 @@
+# IDE settings:
+/.idea/*
+/.gradle/*
+/app/build/*
