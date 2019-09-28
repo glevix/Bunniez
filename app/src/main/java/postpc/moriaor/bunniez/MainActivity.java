@@ -1,15 +1,22 @@
 package postpc.moriaor.bunniez;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +27,16 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_GALLERY = 0;
+    static final int MY_CAMERA_PERMISSION_CODE = 0;
     public int PIC_CODE=0;
+
+    private Bitmap mImageBitmap;
+    private String currentPhotoPath;
+    private ImageView mImageView;
+
+
+
+
 
 
 
@@ -49,9 +65,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+        {
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
+        }
+        else
+        {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Log.i("error", "IOException");
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null && takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_CAMERA_PERMISSION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
+                dispatchTakePictureIntent();
+            } else {
+                Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -66,8 +112,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void startLoaderActivity() {
-        
+    private void startLoaderActivity(String display, String postUrl) {
+        Intent loaderIntent = new Intent(this, LoaderActivity.class);
+        loaderIntent.putExtra("display", display);
+        loaderIntent.putExtra("postUrl", postUrl);
+        if(loaderIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(loaderIntent);
+        }
     }
 
 
@@ -75,9 +126,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             if (PIC_CODE < 2) {
-                dispatchTakePictureIntent();
-                Bitmap photo = (Bitmap) data.getExtras().get("data");
+//                Bitmap photo = (Bitmap) data.getExtras().get("data");
 //                imageView.setImageBitmap(photo);
+                try {
+                    mImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(currentPhotoPath));
+                    mImageView.setImageBitmap(mImageBitmap);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                dispatchTakePictureIntent();
                 PIC_CODE++;
             } else {
                 // process images
@@ -91,8 +148,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-
-        String currentPhotoPath;
 
     private File createImageFile() throws IOException {
         // Create an image file name
