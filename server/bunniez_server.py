@@ -1,0 +1,167 @@
+# Reference: https://github.com/p12tic/simple-http-file-server/
+
+import image_processor as iproc
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import cgi
+import os, shutil
+import socket
+from requests import get
+
+SERVER_WORKING_DIR = 'server_working'
+
+util_dict = dict()
+count = 0
+
+
+def get_new_id():
+    global count
+    count = count + 1
+    return str(count - 1)
+
+
+class RequestHandler(BaseHTTPRequestHandler):
+
+    def get_params(self, method):
+        form = cgi.FieldStorage(
+            fp=self.rfile,
+            headers=self.headers,
+            environ={'REQUEST_METHOD': method,
+                     'CONTENT_TYPE': self.headers['Content-Type'],
+                     })
+        return form.getvalue('id', ''), \
+               form.getvalue('request', ''), \
+               form.getvalue('params', '')
+
+    def set_params(self, identity, request, params):
+        self.send_header('id', identity)
+        self.send_header('request', request)
+        self.send_header('params', params)
+
+
+    def do_PUT(self):
+        """
+        Resource: https://f-o.org.uk/2017/receiving-files-over-http-with-python.html
+        """
+        global util_dict
+        identity, request, params = self.get_params('PUT')
+        _identity, _request, _params = identity, request, 'ok'
+        util = util_dict[identity]
+        if request == 'upload':
+            if identity not in util_dict:
+                _params = 'bad ID'
+            else:
+                filename = SERVER_WORKING_DIR + '/' + identity + '/input/' + params + '.jpg'
+                if os.path.exists(filename):
+                    _params = 'file exists'
+                else:
+                    file_length = int(self.headers['Content-Length'])
+                    with open(filename, 'wb') as output_file:
+                        output_file.write(self.rfile.read(file_length))
+                    util.add_image(filename)
+        else:
+            _params = 'illegal request'
+        self.send_response(200)
+        self.set_params(_identity, _request, _params)
+        self.end_headers()
+
+
+    def do_GET(self):
+        global util_dict
+        identity, request, params = self.get_params('GET')
+        _identity, _request, _params = identity, request, 'ok'
+        if request == 'get_pic':
+            if identity not in util_dict:
+                _params = 'bad ID'
+            else:
+                filename = SERVER_WORKING_DIR + '/' + identity + '/output/' + params + '.jpg'
+                if os.path.exists(filename):
+                    f = open(filename)
+                    self.send_response(200)
+                    self.send_header('Content-type', 'image/jpg')
+                    self.set_params(_identity, _request, _params)
+                    self.end_headers()
+                    self.wfile.write(f.read())
+                    f.close()
+                    return
+                else:
+                    _params = 'no such file'
+        self.send_response(200)
+        self.set_params(_identity, _request, _params)
+        self.end_headers()
+        print("Processed GET request")
+
+    def do_POST(self):
+        global util_dict
+        identity, request, params = self.get_params('POST')
+        _identity, _request, _params = identity, request, 'ok'
+        if request == 'init':
+            # Allocate a new id and a directory
+            _identity = get_new_id()
+            try:
+                os.mkdir(SERVER_WORKING_DIR + '/' + _identity)
+            except FileExistsError:
+                shutil.rmtree(SERVER_WORKING_DIR + '/' + _identity)
+                os.mkdir(SERVER_WORKING_DIR + '/' + _identity)
+            os.mkdir(SERVER_WORKING_DIR + '/' + _identity + '/input')
+            os.mkdir(SERVER_WORKING_DIR + '/' + _identity + '/output')
+            util = iproc.Imutils()
+            util_dict[_identity] = util
+        elif request == 'preprocess':
+            util = util_dict[identity]
+            _params = str(util.preprocess(int(params), SERVER_WORKING_DIR + '/' + identity + '/output/'))
+        elif request == 'process':
+            util = util_dict[identity]
+            filename = SERVER_WORKING_DIR + '/' + identity + '/output/final.jpg'
+            util.process([int(i) for i in params.split(',')], filename)
+            if os.path.exists(filename):
+                f = open(filename)
+                self.send_response(200)
+                self.send_header('Content-type', 'image/jpg')
+                self.set_params(_identity, _request, _params)
+                self.end_headers()
+                self.wfile.write(f.read())
+                f.close()
+                return
+            else:
+                _params = 'could not locate output file'
+        elif request == 'end':
+            del(util_dict[identity])
+            shutil.rmtree(SERVER_WORKING_DIR + '/' + _identity)
+        else:
+            _params = 'illegal request'
+        self.send_response(200)
+        self.set_params(_identity, _request, _params)
+        self.end_headers()
+        print("Processed POST request")
+
+
+def get_ip():
+    host_ip = '?'
+    try:
+        host_name = socket.gethostname()
+        host_ip = socket.gethostbyname(host_name)
+    except:
+        print("Unable to get IP")
+    return host_ip
+
+
+PORT = 8080
+server = HTTPServer(('', PORT), RequestHandler)
+ip = get_ip()
+try:
+    external_ip = get('https://api.ipify.org').text
+    print('External ip: ' + str(external_ip))
+except:
+    print('External ip: ' + 'unknown')
+try:
+    os.mkdir(SERVER_WORKING_DIR)
+except FileExistsError:
+    print('Server working directory exists. Please clean up and try again')
+    exit()
+
+print('Server ready on IP ' + str(ip) + ' port ' + str(PORT))
+try:
+    server.serve_forever()
+except KeyboardInterrupt:
+    print('Server shutdown')
+    server.socket.close()

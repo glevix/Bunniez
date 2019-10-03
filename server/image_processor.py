@@ -4,7 +4,7 @@ import numpy as np
 MAX_IMAGES = 4
 MIN_IMAGES = 2
 
-cascade_path = r'haarcascades\haarcascade_profileface.xml'
+cascade_path = r'haarcascades\haarcascade_frontalface_default.xml'
 cascade = cv2.CascadeClassifier(cascade_path)
 
 orb_detector = cv2.ORB_create(5000)
@@ -57,7 +57,7 @@ def get_faces(image):
     faces = cascade.detectMultiScale(
         grey,
         scaleFactor=1.1,
-        minNeighbors=5,
+        minNeighbors=10,
         minSize=(30, 30),
         flags=cv2.CASCADE_SCALE_IMAGE
     )
@@ -70,8 +70,34 @@ def get_faces(image):
     return f, b
 
 
+def overlay(image, crop, anchor):
+    """
+    Stitches an image onto the base image using the given anchor
+
+    :param image: Base image
+    :param crop: Image to be stitched
+    :param anchor: (x,y,w,h) region in the base image to which to perform the stitching
+    :return: Resulting image
+    """
+    background = image.copy()
+    over = cv2.resize(crop, (anchor[2], anchor[3]))
+    background[anchor[1]:anchor[1] + anchor[3], anchor[0]:anchor[0] + anchor[2], :] = over
+
+    # src = over.astype('uint8')
+    # dst = image.astype('uint8')
+    # mask = np.zeros(src.shape).astype('uint8')
+    # center = (int(anchor[1] + anchor[3] / 2), int(anchor[0] + anchor[2] / 2))
+    # flags = cv2.NORMAL_CLONE
+    # background = cv2.seamlessClone(src, dst, mask, center, flags)
+
+    return background
+
+
 def merge(image, crops, anchors):
-    return image
+    base = image
+    for i in range(len(crops)):
+        base = overlay(base, crops[i], anchors[i])
+    return base
 
 
 class Imutils:
@@ -82,30 +108,33 @@ class Imutils:
     faces = []
     base_index = 0
 
-    def add_image(self, image):
+    def add_image(self, path):
         if len(self.images) >= MAX_IMAGES:
             raise Exception('Exceeded max images')
+        image = cv2.imread(path)
         self.images.append(image)
         self.ready = False
 
     def reset(self):
+        self.ready = False
+        self.output = None
         self.images = []
         self.boxes = []
         self.faces = []
-        self.output = None
-        self.ready = False
+        self.base_index = 0
 
-    def preprocess(self, base_index):
+    def preprocess(self, base_index, path):
         """
         Aligns images
         Populates boxes with a list of bounding boxes for each image
         Populates faces with a list of cropped faces for each image
-
+        Saves aligned images to path
         :param base_index:
-        :return:
+        :param path: save aligned images here
+        :return: boxes: bounding boxes for faces [[(x,y,w,h),...],...]
         """
         if len(self.images) < MIN_IMAGES:
-            raise Exception('Not enough images to preprocess')
+            return None
         self.base_index = base_index
         register(self.images, base_index)
         for image in self.images:
@@ -113,14 +142,23 @@ class Imutils:
             # print('found ' + str(len(f)) + ' faces')
             self.faces.append(f)
             self.boxes.append(b)
+        for i in range(len(self.images)):
+            cv2.imwrite(path + str(i) + '.jpg', self.images[i])
         self.ready = True
+        return self.boxes
 
-    def process(self, indexes):
+    def process(self, indexes, path):
+        """
+        Performs merge, saves result to path
+        :param indexes:  one index for each face, i.e from which image to take
+        :param path: where to save result, including terminal
+        :return: True iff success
+        """
         if not self.ready:
-            raise Exception('Preprocess must be called first')
+            return None
         num_faces = len(self.faces[self.base_index])
         if len(indexes) != num_faces:
-            raise Exception('Wrong number of indexes')
+            return None
         base = self.images[self.base_index]
         input_crops, anchors = [], []
         for i in range(num_faces):
@@ -129,3 +167,5 @@ class Imutils:
             input_crops.append(self.faces[indexes[i]][i])
             anchors.append(self.boxes[self.base_index][i])
         self.output = merge(base, input_crops, anchors)
+        cv2.imwrite(path, self.output)
+        return True
