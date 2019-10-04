@@ -22,15 +22,7 @@ def get_new_id():
 class RequestHandler(BaseHTTPRequestHandler):
 
     def get_params(self, method):
-        form = cgi.FieldStorage(
-            fp=self.rfile,
-            headers=self.headers,
-            environ={'REQUEST_METHOD': method,
-                     'CONTENT_TYPE': self.headers['Content-Type'],
-                     })
-        return form.getvalue('id', ''), \
-               form.getvalue('request', ''), \
-               form.getvalue('params', '')
+        return self.headers['id'], self.headers['request'], self.headers['params']
 
     def set_params(self, identity, request, parameters):
         self.send_header('id', identity)
@@ -41,7 +33,6 @@ class RequestHandler(BaseHTTPRequestHandler):
         global util_dict
         identity, request, parameters = self.get_params('PUT')
         _identity, _request, _parameters = identity, request, 'ok'
-        util = util_dict[identity]
         if request == 'init':
             # Allocate a new id and a directory
             _identity = get_new_id()
@@ -58,8 +49,16 @@ class RequestHandler(BaseHTTPRequestHandler):
             util = util_dict[identity]
             _parameters = str(util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/'))
         elif request == 'end':
-            del(util_dict[identity])
-            shutil.rmtree(SERVER_WORKING_DIR + '/' + _identity)
+            try:
+                del(util_dict[identity])
+            except KeyError:
+                pass
+            try:
+                shutil.rmtree(SERVER_WORKING_DIR + '/' + _identity)
+            except FileNotFoundError:
+                pass
+        else:
+            _parameters = "ILLEGAL_REQUEST"
         self.send_response(200)
         self.set_params(_identity, _request, _parameters)
         self.end_headers()
@@ -86,7 +85,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                         output_file.write(self.rfile.read(file_length))
                     util.add_image(filename)
         else:
-            _parameters = 'illegal request'
+            _parameters = "ILLEGAL_REQUEST"
         self.send_response(200)
         self.set_params(_identity, _request, _parameters)
         self.end_headers()
@@ -127,6 +126,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
             else:
                 _parameters = 'could not locate output file'
+        else:
+            _parameters = "ILLEGAL_REQUEST"
         self.send_response(200)
         self.set_params(_identity, _request, _parameters)
         self.end_headers()
@@ -152,6 +153,9 @@ try:
 except:
     print('External ip: ' + 'unknown')
 try:
+    os.mkdir(SERVER_WORKING_DIR)
+except FileExistsError:
+    shutil.rmtree(SERVER_WORKING_DIR)
     os.mkdir(SERVER_WORKING_DIR)
 except FileExistsError:
     print('Server working directory exists. Please clean up and try again')
