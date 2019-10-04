@@ -28,9 +28,10 @@ class ImageUtils {
 
     static File createImageFile(Context context, int index) throws IOException {
         // Create an image file name
+        String filename = "input" + index;
         File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
-                Integer.toString(index),  /* prefix */
+                filename,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );

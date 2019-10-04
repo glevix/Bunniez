@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        imagePaths = new ArrayList<>();
         Button cameraButton = findViewById(R.id.camera_button);
         Button galleryButton = findViewById(R.id.gallery_button);
         cameraButton.setOnClickListener(this);
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (photoFile != null && takePictureIntent.resolveActivity(getPackageManager()) != null) {
                 Uri photoURI = FileProvider.getUriForFile(MainActivity.this,
                         BuildConfig.APPLICATION_ID + ".provider", photoFile);
-//                getApplicationContext().grantUriPermission(getApplicationContext().getPackageName(), photoURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                getApplicationContext().grantUriPermission(getApplicationContext().getPackageName(), photoURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 currentPhotoUri = photoURI;
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
@@ -106,14 +107,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-//    private void loadImagesPathsToIntent(Intent intent) {
-//        intent.putExtra("firstImagePath", firstImagePath);
-//        intent.putExtra("secondImagePath", secondImagePath);
-//        intent.putExtra("thirdImagePath", thirdImagePath);
-//    }
 
     private void onDoneSelection() {
-        this.startLoaderActivity("processing...", "preprocess");
+        this.startLoaderActivity("processing...", "upload");
     }
 
     private void startLoaderActivity(String display, String request) {
@@ -138,29 +134,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void onCameraResult() {
         if(PIC_NUM >= PIC_NUM_LIMIT) {
-            this.saveCapturedImagePath();
+            imagePaths.add(currentPhotoUri.getPath());
             this.onDoneSelection();
             PIC_NUM = 0;
         } else {
-            this.saveCapturedImagePath();
+            imagePaths.add(currentPhotoUri.getPath());
             PIC_NUM ++;
             this.dispatchTakePictureIntent();
         }
-    }
-
-    private void saveCapturedImagePath() {
-        imagePaths.add(currentPhotoUri.getPath());
-//        switch (PIC_NUM) {
-//            case 0:
-//                firstImagePath = currentPhotoUri.getPath();
-//                break;
-//            case 1:
-//                secondImagePath = currentPhotoUri.getPath();
-//                break;
-//            case 2:
-//                thirdImagePath = currentPhotoUri.getPath();
-//                break;
-//        }
     }
 
 
