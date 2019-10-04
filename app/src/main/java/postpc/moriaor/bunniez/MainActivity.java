@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -36,6 +37,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String firstImagePath;
     private String secondImagePath;
     private String thirdImagePath;
+
+    private ArrayList<String> imagePaths;
 
 
 
@@ -103,11 +106,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void loadImagesPathsToIntent(Intent intent) {
-        intent.putExtra("firstImagePath", firstImagePath);
-        intent.putExtra("secondImagePath", secondImagePath);
-        intent.putExtra("thirdImagePath", thirdImagePath);
-    }
+//    private void loadImagesPathsToIntent(Intent intent) {
+//        intent.putExtra("firstImagePath", firstImagePath);
+//        intent.putExtra("secondImagePath", secondImagePath);
+//        intent.putExtra("thirdImagePath", thirdImagePath);
+//    }
 
     private void onDoneSelection() {
         this.startLoaderActivity("processing...", "preprocess");
@@ -117,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent loaderIntent = new Intent(this, LoaderActivity.class);
         loaderIntent.putExtra("display", display);
         loaderIntent.putExtra("request", request);
-        loadImagesPathsToIntent(loaderIntent);
+        loaderIntent.putStringArrayListExtra("imagePaths", imagePaths);
         if(loaderIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(loaderIntent, HTTP_LOADER_REQUEST);
         }
@@ -146,17 +149,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void saveCapturedImagePath() {
-        switch (PIC_NUM) {
-            case 0:
-                firstImagePath = currentPhotoUri.getPath();
-                break;
-            case 1:
-                secondImagePath = currentPhotoUri.getPath();
-                break;
-            case 2:
-                thirdImagePath = currentPhotoUri.getPath();
-                break;
-        }
+        imagePaths.add(currentPhotoUri.getPath());
+//        switch (PIC_NUM) {
+//            case 0:
+//                firstImagePath = currentPhotoUri.getPath();
+//                break;
+//            case 1:
+//                secondImagePath = currentPhotoUri.getPath();
+//                break;
+//            case 2:
+//                thirdImagePath = currentPhotoUri.getPath();
+//                break;
+//        }
     }
 
 
