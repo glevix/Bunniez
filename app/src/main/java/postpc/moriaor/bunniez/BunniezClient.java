@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -22,14 +24,15 @@ public class BunniezClient {
     String endpoint;
     String id;
     OkHttpClient client;
+    BoundingBox[][] boxes;
+    boolean error;
 
     BunniezClient(String url) {
         this.endpoint = url;
         this.client = new OkHttpClient();
     }
 
-    BoundingBox[][] parseBoundingBoxes(String text) {
-        return null;
+    void parseBoundingBoxes(String text) {
     }
 
     String buildIndexString(int[] indexes) {
@@ -38,9 +41,10 @@ public class BunniezClient {
 
     /**
      * Send HEAD "init" request, setting id
-     * @return True iff success
+     *
+     * @param runnable To run on completion. Should check for error
      */
-    boolean do_init() {
+    void do_init(final Runnable runnable) {
         Request request = new Request.Builder()
                 .head()
                 .header("request", "init")
@@ -48,25 +52,37 @@ public class BunniezClient {
                 .header("params", "")
                 .url(endpoint)
                 .build();
-        Response response;
-        try {
-            response = client.newCall(request).execute();
-        } catch (IOException e) {
-            return false;
-        }
-        if (response.header("params", "").equals("ok")) {
-            id = response.header("id", "");
-            return true;
-        }
-        return false;
+
+        Call call = client.newCall(request);
+        Callback callback = new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                error = true;
+                runnable.run();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.header("params", "").equals("ok")) {
+                    id = response.header("id", "");
+                    error = false;
+                } else {
+                    error = true;
+                }
+                runnable.run();
+            }
+        };
+        call.enqueue(callback);
     }
 
     /**
      * Send PUT "upload" request, with file
+     *
+     * @param runnable To run on completion. Should check for error
      * @param file The file to send
-     * @return True iff success
+     * @param index The index of the file (0,1,...)
      */
-    boolean do_upload(File file, int index) {
+    void do_upload(final Runnable runnable, File file, int index) {
         MediaType mt = MediaType.parse("application/octet-stream");
         Request request = new Request.Builder()
                 .put(RequestBody.create(mt, file))
@@ -75,22 +91,31 @@ public class BunniezClient {
                 .header("params", Integer.toString(index))
                 .url(endpoint)
                 .build();
-        Response response;
-        try {
-            response = client.newCall(request).execute();
-        } catch (IOException e) {
-            return false;
-        }
-        return response.header("params", "").equals("ok");
+        Call call = client.newCall(request);
+        Callback callback = new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                error = true;
+                runnable.run();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                error = !response.header("params", "").equals("ok");
+                runnable.run();
+            }
+        };
+        call.enqueue(callback);
     }
 
     /**
      * Send HEAD "preprocess" request
+     * Populates this.boxes with an array of bounding boxes for each image
      *
+     * @param runnable To run on completion. Should check this.error
      * @param baseIndex Index of image to be used as base
-     * @return An array of bounding boxes for each image
      */
-    BoundingBox[][] do_preprocess(int baseIndex) {
+    void do_preprocess(final Runnable runnable, int baseIndex) {
         Request request = new Request.Builder()
                 .head()
                 .header("request", "preprocess")
@@ -98,23 +123,36 @@ public class BunniezClient {
                 .header("params", Integer.toString(baseIndex))
                 .url(endpoint)
                 .build();
-        Response response;
-        try {
-            response = client.newCall(request).execute();
-        } catch (IOException e) {
-            return null;
-        }
-        String text = response.header("params", "");
-        return parseBoundingBoxes(text);
+
+        Call call = client.newCall(request);
+        Callback callback = new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                error = true;
+                runnable.run();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                error = !response.header("params", "").equals("ok");
+                if (!error) {
+                    String text = response.header("params", "");
+                    parseBoundingBoxes(text);
+                }
+                runnable.run();
+            }
+        };
+        call.enqueue(callback);
     }
 
     /**
      * Send GET "get_pic" request
+     *
+     * @param runnable To run on completion. Should check this.error
      * @param index index of output photo to retrieve
      * @param out File to write output image to
-     * @return true iff success
      */
-    boolean do_get_pic(int index, File out) {
+    void do_get_pic(final Runnable runnable, int index, final File out) {
         Request request = new Request.Builder()
                 .get()
                 .header("request", "get_pic")
@@ -122,48 +160,58 @@ public class BunniezClient {
                 .header("params", Integer.toString(index))
                 .url(endpoint)
                 .build();
-        Response response;
-        try {
-            response = client.newCall(request).execute();
-        } catch (IOException e) {
-            return false;
-        }
-        if (response.header("params", "").equals("ok")) {
-            try {
-                int contentLength = (int) response.body().contentLength();
-                InputStream raw = response.body().byteStream();
-                InputStream in = new BufferedInputStream(raw);
-                byte[] data = new byte[contentLength];
-                int bytesRead, offset = 0;
-                while (offset < contentLength) {
-                    bytesRead = in.read(data, offset, data.length - offset);
-                    if (bytesRead == -1)
-                        break;
-                    offset += bytesRead;
-                }
-                in.close();
-                if (offset != contentLength) {
-                    return false;
-                }
-                FileOutputStream fileOutputStream = new FileOutputStream(out);
-                fileOutputStream.write(data);
-                fileOutputStream.flush();
-                fileOutputStream.close();
-                return true;
-            } catch (IOException | NullPointerException e) {
-                return false;
+
+        Call call = client.newCall(request);
+        Callback callback = new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                error = true;
+                runnable.run();
             }
-        }
-        return false;
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                error = !response.header("params", "").equals("ok");
+                if (!error) {
+                    try {
+                        int contentLength = (int) response.body().contentLength();
+                        InputStream raw = response.body().byteStream();
+                        InputStream in = new BufferedInputStream(raw);
+                        byte[] data = new byte[contentLength];
+                        int bytesRead, offset = 0;
+                        while (offset < contentLength) {
+                            bytesRead = in.read(data, offset, data.length - offset);
+                            if (bytesRead == -1)
+                                break;
+                            offset += bytesRead;
+                        }
+                        in.close();
+                        if (offset != contentLength) {
+                            error = true;
+                        } else {
+                            FileOutputStream fileOutputStream = new FileOutputStream(out);
+                            fileOutputStream.write(data);
+                            fileOutputStream.flush();
+                            fileOutputStream.close();
+                        }
+                    } catch (IOException | NullPointerException e) {
+                        error = true;
+                    }
+                }
+                runnable.run();
+            }
+        };
+        call.enqueue(callback);
     }
 
     /**
      * Send GET "process" request
+     *
+     * @param runnable To run on completion. Should check this.error
      * @param indexes array specifying from which image to take each face
      * @param out File to write output image to
-     * @return true iff success
      */
-    boolean do_process(int[] indexes, File out) {
+    void do_process(final Runnable runnable, int[] indexes, final File out) {
         Request request = new Request.Builder()
                 .get()
                 .header("request", "process")
@@ -171,46 +219,56 @@ public class BunniezClient {
                 .header("params", buildIndexString(indexes))
                 .url(endpoint)
                 .build();
-        Response response;
-        try {
-            response = client.newCall(request).execute();
-        } catch (IOException e) {
-            return false;
-        }
-        if (response.header("params", "").equals("ok")) {
-            try {
-                int contentLength = (int) response.body().contentLength();
-                InputStream raw = response.body().byteStream();
-                InputStream in = new BufferedInputStream(raw);
-                byte[] data = new byte[contentLength];
-                int bytesRead, offset = 0;
-                while (offset < contentLength) {
-                    bytesRead = in.read(data, offset, data.length - offset);
-                    if (bytesRead == -1)
-                        break;
-                    offset += bytesRead;
-                }
-                in.close();
-                if (offset != contentLength) {
-                    return false;
-                }
-                FileOutputStream fileOutputStream = new FileOutputStream(out);
-                fileOutputStream.write(data);
-                fileOutputStream.flush();
-                fileOutputStream.close();
-                return true;
-            } catch (IOException | NullPointerException e) {
-                return false;
+
+        Call call = client.newCall(request);
+        Callback callback = new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                error = true;
+                runnable.run();
             }
-        }
-        return false;
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                error = !response.header("params", "").equals("ok");
+                if (!error) {
+                    try {
+                        int contentLength = (int) response.body().contentLength();
+                        InputStream raw = response.body().byteStream();
+                        InputStream in = new BufferedInputStream(raw);
+                        byte[] data = new byte[contentLength];
+                        int bytesRead, offset = 0;
+                        while (offset < contentLength) {
+                            bytesRead = in.read(data, offset, data.length - offset);
+                            if (bytesRead == -1)
+                                break;
+                            offset += bytesRead;
+                        }
+                        in.close();
+                        if (offset != contentLength) {
+                            error = true;
+                        } else {
+                            FileOutputStream fileOutputStream = new FileOutputStream(out);
+                            fileOutputStream.write(data);
+                            fileOutputStream.flush();
+                            fileOutputStream.close();
+                        }
+                    } catch (IOException | NullPointerException e) {
+                        error = true;
+                    }
+                }
+                runnable.run();
+            }
+        };
+        call.enqueue(callback);
     }
 
     /**
      * Send HEAD "end" request
-     * @return True iff success
+     *
+     * @param runnable To run on completion. Should check this.error
      */
-    boolean do_end() {
+    void do_end(final Runnable runnable) {
         Request request = new Request.Builder()
                 .head()
                 .header("request", "end")
@@ -218,13 +276,22 @@ public class BunniezClient {
                 .header("params", "")
                 .url(endpoint)
                 .build();
-        Response response;
-        try {
-            response = client.newCall(request).execute();
-        } catch (IOException e) {
-            return false;
-        }
-        return response.header("params", "").equals("ok");
+
+        Call call = client.newCall(request);
+        Callback callback = new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                error = true;
+                runnable.run();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                error = !response.header("params", "").equals("ok");
+                runnable.run();
+            }
+        };
+        call.enqueue(callback);
     }
 
 
