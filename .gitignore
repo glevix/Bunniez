@@ -2,3 +2,9 @@
 /.idea/*
 /.gradle/*
 /app/build/*
+
+# Pycache:
+*.pyc
+
+# Other:
+*.iml
