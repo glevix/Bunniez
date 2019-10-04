@@ -31,6 +31,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_header('params', parameters)
 
     def do_HEAD(self):
+        print("Received HEAD request")
         global util_dict
         identity, request, parameters = self.get_params('PUT')
         _identity, _request, _parameters = identity, request, 'ok'
@@ -46,9 +47,11 @@ class RequestHandler(BaseHTTPRequestHandler):
             os.mkdir(SERVER_WORKING_DIR + '/' + _identity + '/output')
             util = iproc.Imutils()
             util_dict[_identity] = util
+            print('New id: ' + _identity)
         elif request == 'preprocess':
             util = util_dict[identity]
             _parameters = str(util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/'))
+            print('Preprocess,  id: ' + _identity)
         elif request == 'end':
             try:
                 del(util_dict[identity])
@@ -58,6 +61,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 shutil.rmtree(SERVER_WORKING_DIR + '/' + _identity)
             except FileNotFoundError:
                 pass
+            print('End,  id: ' + _identity)
         else:
             _parameters = "ILLEGAL_REQUEST"
         self.send_response(200)

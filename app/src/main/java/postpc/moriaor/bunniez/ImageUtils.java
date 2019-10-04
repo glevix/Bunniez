@@ -31,6 +31,16 @@ class ImageUtils {
         String filename = "input" + index;
         File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = new File(storageDir + File.separator + filename + ".jpg");
+        if (!image.exists()) {
+            try {
+                if (image.createNewFile())
+                    return image;
+                else
+                    return null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 //        File image = File.createTempFile(
 //                filename,  /* prefix */
 //                ".jpg",         /* suffix */
