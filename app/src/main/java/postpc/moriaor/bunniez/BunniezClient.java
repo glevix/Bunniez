@@ -17,15 +17,25 @@ class BoundingBox {
     int x, y, w, h;
 }
 
-public class BunniezClient {
+class BunniezClient {
 
-    String endpoint;
-    String id;
-    OkHttpClient client;
+    private String endpoint;
+    private String id;
+    private OkHttpClient client;
 
     BunniezClient(String url) {
         this.endpoint = url;
         this.client = new OkHttpClient();
+    }
+
+    BunniezClient(String id, String url) {
+        this.id = id;
+        this.endpoint = url;
+        this.client = new OkHttpClient();
+    }
+
+    String getId() {
+        return this.id;
     }
 
     BoundingBox[][] parseBoundingBoxes(String text) {
