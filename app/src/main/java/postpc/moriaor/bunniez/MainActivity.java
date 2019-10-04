@@ -7,9 +7,12 @@ import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -39,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String thirdImagePath;
 
     private ArrayList<String> imagePaths;
+    MainUtils mainUtils;
 
 
 
@@ -47,6 +51,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Bunniez bunniez = (Bunniez) getApplicationContext();
+        BunniezClient client = bunniez.getClient();
+        mainUtils = new MainUtils(this);
         imagePaths = new ArrayList<>();
         Button cameraButton = findViewById(R.id.camera_button);
         Button galleryButton = findViewById(R.id.gallery_button);
@@ -58,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.camera_button:
-                dispatchTakePictureIntent();
+               dispatchTakePictureIntent();
                 break;
 
             case R.id.gallery_button:
@@ -109,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void onDoneSelection() {
-        this.startLoaderActivity("processing...", "upload");
+        this.startLoaderActivity("Uploading Your Photos...", "upload");
     }
 
     private void startLoaderActivity(String display, String request) {
@@ -123,7 +130,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void onHttpResult() {
+    private void onHttpResult(int resultCode) {
+        if(resultCode == RESULT_CANCELED) {
+            Runnable retry = new Runnable() {
+                @Override
+                public void run() {
+                    //
+                }
+            };
+            mainUtils.popAlertDialog(retry, "Upload Failed",
+                    "Something went wrong. Please try again soon.",
+                    "OK",
+                    "Cancel");
+        }
 
     }
 
@@ -154,10 +173,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (requestCode == REQUEST_GALLERY && resultCode == Activity.RESULT_OK) {
             this.onGalleryResult();
         }
-        if (requestCode == HTTP_LOADER_REQUEST && resultCode == Activity.RESULT_OK) {
-            this.onHttpResult();
+        if (requestCode == HTTP_LOADER_REQUEST) {
+            this.onHttpResult(resultCode);
         }
     }
+
 
 
     private void requestStoragePermission() {
