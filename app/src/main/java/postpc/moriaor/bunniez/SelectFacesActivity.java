@@ -24,7 +24,6 @@ public class SelectFacesActivity extends AppCompatActivity {
 
     private ImageView first;
     private Uri imageUri;
-    Picasso picasso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +32,6 @@ public class SelectFacesActivity extends AppCompatActivity {
         first = findViewById(R.id.image);
         Bitmap bmp = null;
         String filename = getIntent().getStringExtra("image");
-        picasso = Picasso.get();
         try {
             FileInputStream is = this.openFileInput(filename);
             bmp = BitmapFactory.decodeStream(is);
