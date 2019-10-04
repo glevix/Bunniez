@@ -60,6 +60,7 @@ class BunniezClient {
             @Override
             public void onFailure(Call call, IOException e) {
                 error = true;
+                e.printStackTrace();
                 runnable.run();
             }
 
