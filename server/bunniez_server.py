@@ -3,6 +3,7 @@
 import image_processor as iproc
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import cgi
+import ssl
 import os, shutil
 import socket
 from requests import get
@@ -146,6 +147,7 @@ def get_ip():
 
 PORT = 8080
 server = HTTPServer(('', PORT), RequestHandler)
+# server.socket = ssl.wrap_socket(server.socket, certfile='', server_side=True)
 ip = get_ip()
 try:
     external_ip = get('https://api.ipify.org').text

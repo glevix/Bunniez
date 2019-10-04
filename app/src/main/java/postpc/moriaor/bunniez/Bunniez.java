@@ -4,7 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 public class Bunniez extends Application {
-    static final String SERVER_URL = "https://192.168.56.1:8080";
+    static final String SERVER_URL = "http://192.168.56.1:8080";
 
     BunniezClient client;
 
