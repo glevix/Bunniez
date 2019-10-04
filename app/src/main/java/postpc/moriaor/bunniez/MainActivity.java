@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void processImage(Bitmap bmp) {
         try {
             //Write file
-            String filename = "bitmap.jpg";
+            String filename = PIC_NUM + ".jpg";
             FileOutputStream stream = this.openFileOutput(filename, Context.MODE_PRIVATE);
             bmp.compress(Bitmap.CompressFormat.JPEG, 80, stream);
 

@@ -19,20 +19,41 @@ class BoundingBox {
     int x, y, w, h;
 }
 
-public class BunniezClient {
+class BunniezClient {
 
+<<<<<<< HEAD
     String endpoint;
     String id;
     OkHttpClient client;
     BoundingBox[][] boxes;
     boolean error;
+=======
+    private String endpoint;
+    private String id;
+    private OkHttpClient client;
+>>>>>>> 4139ad55275630ccb4ea7d041593cb671bdf16e5
 
     BunniezClient(String url) {
         this.endpoint = url;
         this.client = new OkHttpClient();
     }
 
+<<<<<<< HEAD
     void parseBoundingBoxes(String text) {
+=======
+    BunniezClient(String id, String url) {
+        this.id = id;
+        this.endpoint = url;
+        this.client = new OkHttpClient();
+    }
+
+    String getId() {
+        return this.id;
+    }
+
+    BoundingBox[][] parseBoundingBoxes(String text) {
+        return null;
+>>>>>>> 4139ad55275630ccb4ea7d041593cb671bdf16e5
     }
 
     String buildIndexString(int[] indexes) {

@@ -33,18 +33,15 @@ public class SelectFacesActivity extends AppCompatActivity {
         first = findViewById(R.id.image);
         Bitmap bmp = null;
         String filename = getIntent().getStringExtra("image");
-        String strUri = getIntent().getStringExtra("imageUri");
         picasso = Picasso.get();
         try {
             FileInputStream is = this.openFileInput(filename);
-            File temp = new File(filename);
-//            picasso.load(Uri.parse(strUri)).fit().into(first);
             bmp = BitmapFactory.decodeStream(is);
 
             is.close();
-//            if (bmp != null) {
-//                first.setImageBitmap(bmp);
-//            }
+            if (bmp != null) {
+                first.setImageBitmap(bmp);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
