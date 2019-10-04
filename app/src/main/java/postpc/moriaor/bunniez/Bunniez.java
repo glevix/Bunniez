@@ -15,13 +15,12 @@ public class Bunniez extends Application {
         client.do_init(new Runnable() {
             @Override
             public void run() {
-                if(client.id != null) {
-                    Log.d("bunbun", client.id);
-                }
-                else {
+                if(client.error) {
                     Log.d("bunbun", "faild");
                 }
-                // do what?
+                else {
+                    Log.d("bunbun", client.id);
+                }
             }
         });
     }

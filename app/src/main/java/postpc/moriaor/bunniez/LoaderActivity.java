@@ -3,7 +3,9 @@ package postpc.moriaor.bunniez;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -48,16 +50,35 @@ public class LoaderActivity extends AppCompatActivity {
     }
 
     private void postRequest() {
-        switch(request) {
-            case "preprocess":
-                this.handlePreprocess();
-                break;
-            case "upload":
-                this.handleUpload();
-                break;
+        try {
+            switch (request) {
+                case "preprocess":
+                    this.handlePreprocess();
+                    break;
+                case "upload":
+                    this.handleUpload();
+                    break;
 
 
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnWithResult(RESULT_CANCELED, "Request Failed");
         }
+    }
+
+    private void returnWithResult(final int resultCode, final String text) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                Log.i("Tag", "Runnable running!");
+                Intent data = new Intent();
+                data.setData(Uri.parse(text));
+                setResult(resultCode, data);
+                finish();
+            }
+        };
+        Handler handler = new android.os.Handler();
+        handler.postDelayed(runnable, 5000);
     }
 
     private Runnable composeRunnable(final String requestName) {
@@ -66,6 +87,12 @@ public class LoaderActivity extends AppCompatActivity {
             public void run() {
                 if(client.error) {
                     Log.i("bunny is sad", requestName+ " request failed");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            returnWithResult(RESULT_CANCELED, "Request Failed");
+                        }
+                    });
                 } else {
                     Log.i("bunny is happy", requestName+ "request completed successfully");
 
@@ -102,10 +129,17 @@ public class LoaderActivity extends AppCompatActivity {
     }
 
     private void handleUpload() {
-        for(int i = 0; i < imagePaths.size(); i++) {
+        for (int i = 0; i < imagePaths.size(); i++) {
             File source = new File(imagePaths.get(i));
             client.do_upload(composeRunnable("do_upload"), source, i);
         }
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
     }
 }
 
