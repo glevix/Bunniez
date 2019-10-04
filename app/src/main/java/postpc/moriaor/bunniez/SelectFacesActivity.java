@@ -38,7 +38,7 @@ public class SelectFacesActivity extends AppCompatActivity {
         try {
             FileInputStream is = this.openFileInput(filename);
             File temp = new File(filename);
-            picasso.load(strUri).resize(60, 60).centerCrop().into(first);
+//            picasso.load(Uri.parse(strUri)).fit().into(first);
             bmp = BitmapFactory.decodeStream(is);
 
             is.close();
