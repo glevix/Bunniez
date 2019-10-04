@@ -30,11 +30,12 @@ class ImageUtils {
         // Create an image file name
         String filename = "input" + index;
         File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                filename,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
+        File image = new File(storageDir + File.separator + filename + ".jpg");
+//        File image = File.createTempFile(
+//                filename,  /* prefix */
+//                ".jpg",         /* suffix */
+//                storageDir      /* directory */
+//        );
         return image;
     }
 
