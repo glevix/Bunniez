@@ -224,10 +224,7 @@ public class BunniezClient {
         } catch (IOException e) {
             return false;
         }
-        if (response.header("params", "").equals("ok")) {
-            return true;
-        }
-        return false;
+        return response.header("params", "").equals("ok");
     }
 
 

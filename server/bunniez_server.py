@@ -32,68 +32,16 @@ class RequestHandler(BaseHTTPRequestHandler):
                form.getvalue('request', ''), \
                form.getvalue('params', '')
 
-    def set_params(self, identity, request, params):
+    def set_params(self, identity, request, parameters):
         self.send_header('id', identity)
         self.send_header('request', request)
-        self.send_header('params', params)
+        self.send_header('params', parameters)
 
-
-    def do_PUT(self):
-        """
-        Resource: https://f-o.org.uk/2017/receiving-files-over-http-with-python.html
-        """
+    def do_HEAD(self):
         global util_dict
-        identity, request, params = self.get_params('PUT')
-        _identity, _request, _params = identity, request, 'ok'
+        identity, request, parameters = self.get_params('PUT')
+        _identity, _request, _parameters = identity, request, 'ok'
         util = util_dict[identity]
-        if request == 'upload':
-            if identity not in util_dict:
-                _params = 'bad ID'
-            else:
-                filename = SERVER_WORKING_DIR + '/' + identity + '/input/' + params + '.jpg'
-                if os.path.exists(filename):
-                    _params = 'file exists'
-                else:
-                    file_length = int(self.headers['Content-Length'])
-                    with open(filename, 'wb') as output_file:
-                        output_file.write(self.rfile.read(file_length))
-                    util.add_image(filename)
-        else:
-            _params = 'illegal request'
-        self.send_response(200)
-        self.set_params(_identity, _request, _params)
-        self.end_headers()
-
-
-    def do_GET(self):
-        global util_dict
-        identity, request, params = self.get_params('GET')
-        _identity, _request, _params = identity, request, 'ok'
-        if request == 'get_pic':
-            if identity not in util_dict:
-                _params = 'bad ID'
-            else:
-                filename = SERVER_WORKING_DIR + '/' + identity + '/output/' + params + '.jpg'
-                if os.path.exists(filename):
-                    f = open(filename)
-                    self.send_response(200)
-                    self.send_header('Content-type', 'image/jpg')
-                    self.set_params(_identity, _request, _params)
-                    self.end_headers()
-                    self.wfile.write(f.read())
-                    f.close()
-                    return
-                else:
-                    _params = 'no such file'
-        self.send_response(200)
-        self.set_params(_identity, _request, _params)
-        self.end_headers()
-        print("Processed GET request")
-
-    def do_POST(self):
-        global util_dict
-        identity, request, params = self.get_params('POST')
-        _identity, _request, _params = identity, request, 'ok'
         if request == 'init':
             # Allocate a new id and a directory
             _identity = get_new_id()
@@ -108,31 +56,81 @@ class RequestHandler(BaseHTTPRequestHandler):
             util_dict[_identity] = util
         elif request == 'preprocess':
             util = util_dict[identity]
-            _params = str(util.preprocess(int(params), SERVER_WORKING_DIR + '/' + identity + '/output/'))
+            _parameters = str(util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/'))
+        elif request == 'end':
+            del(util_dict[identity])
+            shutil.rmtree(SERVER_WORKING_DIR + '/' + _identity)
+        self.send_response(200)
+        self.set_params(_identity, _request, _parameters)
+        self.end_headers()
+        print("Processed HEAD request")
+
+    def do_PUT(self):
+        """
+        Resource: https://f-o.org.uk/2017/receiving-files-over-http-with-python.html
+        """
+        global util_dict
+        identity, request, parameters = self.get_params('PUT')
+        _identity, _request, _parameters = identity, request, 'ok'
+        util = util_dict[identity]
+        if request == 'upload':
+            if identity not in util_dict:
+                _parameters = 'bad ID'
+            else:
+                filename = SERVER_WORKING_DIR + '/' + identity + '/input/' + parameters + '.jpg'
+                if os.path.exists(filename):
+                    _parameters = 'file exists'
+                else:
+                    file_length = int(self.headers['Content-Length'])
+                    with open(filename, 'wb') as output_file:
+                        output_file.write(self.rfile.read(file_length))
+                    util.add_image(filename)
+        else:
+            _parameters = 'illegal request'
+        self.send_response(200)
+        self.set_params(_identity, _request, _parameters)
+        self.end_headers()
+        print("Processed PUT request")
+
+    def do_GET(self):
+        global util_dict
+        identity, request, parameters = self.get_params('GET')
+        _identity, _request, _parameters = identity, request, 'ok'
+        if request == 'get_pic':
+            if identity not in util_dict:
+                _parameters = 'bad ID'
+            else:
+                filename = SERVER_WORKING_DIR + '/' + identity + '/output/' + parameters + '.jpg'
+                if os.path.exists(filename):
+                    f = open(filename)
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/octet-stream')
+                    self.set_params(_identity, _request, _parameters)
+                    self.end_headers()
+                    self.wfile.write(f.read())
+                    f.close()
+                    return
+                else:
+                    _parameters = 'no such file'
         elif request == 'process':
             util = util_dict[identity]
             filename = SERVER_WORKING_DIR + '/' + identity + '/output/final.jpg'
-            util.process([int(i) for i in params.split(',')], filename)
+            util.process([int(i) for i in parameters.split(',')], filename)
             if os.path.exists(filename):
                 f = open(filename)
                 self.send_response(200)
-                self.send_header('Content-type', 'image/jpg')
-                self.set_params(_identity, _request, _params)
+                self.send_header('Content-type', 'application/octet-stream')
+                self.set_params(_identity, _request, _parameters)
                 self.end_headers()
                 self.wfile.write(f.read())
                 f.close()
                 return
             else:
-                _params = 'could not locate output file'
-        elif request == 'end':
-            del(util_dict[identity])
-            shutil.rmtree(SERVER_WORKING_DIR + '/' + _identity)
-        else:
-            _params = 'illegal request'
+                _parameters = 'could not locate output file'
         self.send_response(200)
-        self.set_params(_identity, _request, _params)
+        self.set_params(_identity, _request, _parameters)
         self.end_headers()
-        print("Processed POST request")
+        print("Processed GET request")
 
 
 def get_ip():
