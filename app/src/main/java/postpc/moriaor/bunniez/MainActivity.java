@@ -2,9 +2,12 @@ package postpc.moriaor.bunniez;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -15,28 +18,27 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import static android.os.Environment.getExternalStoragePublicDirectory;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_GALLERY = 0;
+    static final int EXTERNAL_STORAGE_PERMISSION_CODE = 122;
     static final int MY_CAMERA_PERMISSION_CODE = 0;
-    public int PIC_CODE=0;
+    static final int PIC_NUM_LIMIT = 1;
+    private int PIC_NUM = 1;
 
     private Bitmap mImageBitmap;
-    private String currentPhotoPath;
-    private ImageView mImageView;
-
-
-
-
+    private Uri currentPhotoUri;
 
 
 
@@ -65,13 +67,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void dispatchTakePictureIntent() {
+        this.requestStoragePermission();
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
         {
             requestPermissions(new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
         }
         else
         {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             File photoFile = null;
             try {
                 photoFile = createImageFile();
@@ -81,24 +84,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             // Continue only if the File was successfully created
             if (photoFile != null && takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+                Uri photoURI = FileProvider.getUriForFile(MainActivity.this,
+                        BuildConfig.APPLICATION_ID + ".provider", photoFile);
+                getApplicationContext().grantUriPermission(getApplicationContext().getPackageName(), photoURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                currentPhotoUri = photoURI;
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
 
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == MY_CAMERA_PERMISSION_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
-                dispatchTakePictureIntent();
-            } else {
-                Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
-            }
-        }
     }
 
 
@@ -121,22 +115,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_CAMERA_PERMISSION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
+                dispatchTakePictureIntent();
+            } else {
+                Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
+            }
+        }
+        else if (requestCode == EXTERNAL_STORAGE_PERMISSION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "storage permission granted", Toast.LENGTH_LONG).show();
+                dispatchTakePictureIntent();
+            } else {
+                Toast.makeText(this, "storage permission denied", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+
+
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            if (PIC_CODE < 2) {
-//                Bitmap photo = (Bitmap) data.getExtras().get("data");
-//                imageView.setImageBitmap(photo);
                 try {
-                    mImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(currentPhotoPath));
-                    mImageView.setImageBitmap(mImageBitmap);
+                    mImageBitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), currentPhotoUri);
+                    if(mImageBitmap != null) {
+                        this.processImage(mImageBitmap);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            if (PIC_NUM < PIC_NUM_LIMIT) {
+                PIC_NUM++;
                 dispatchTakePictureIntent();
-                PIC_CODE++;
             } else {
+                PIC_NUM = 0;
                 // process images
             }
         }
@@ -147,6 +165,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    private void processImage(Bitmap bmp) {
+        try {
+            //Write file
+            String filename = "bitmap.jpg";
+            FileOutputStream stream = this.openFileOutput(filename, Context.MODE_PRIVATE);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+
+            //Cleanup
+            stream.close();
+            bmp.recycle();
+
+            //Pop intent
+            Intent selectFacesIntent = new Intent(this, SelectFacesActivity.class);
+            selectFacesIntent.putExtra("image", filename);
+            selectFacesIntent.putExtra("imageUri", currentPhotoUri.getPath());
+            startActivity(selectFacesIntent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private File getOutputMediaFile() {
+        File mediaStorageDir = new File(getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), getString(R.string.app_name));
+
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                return null;
+            }
+        }
+
+        return null;
+
+//        return new File(mediaStorageDir.getPath() + File.separator +
+//                PROFILE_PIC + getString(R.string.pic_type));
+    }
 
 
     private File createImageFile() throws IOException {
@@ -159,9 +213,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
         return image;
     }
-}
+
+    private void requestStoragePermission() {
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, EXTERNAL_STORAGE_PERMISSION_CODE);
+            }
+        }
+    }
+
+
