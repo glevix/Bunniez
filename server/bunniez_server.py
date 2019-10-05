@@ -8,6 +8,7 @@ import json
 import os, shutil
 import socket
 from requests import get
+import numpy as np
 
 SERVER_WORKING_DIR = 'server_working'
 
@@ -24,6 +25,9 @@ def get_new_id():
     global count
     count = count + 1
     return str(count - 1)
+
+def convert(o):
+    return int(o)
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -56,9 +60,14 @@ class RequestHandler(BaseHTTPRequestHandler):
             util_dict[_identity] = util
             print('\tNew id: ' + _identity)
         elif request == 'preprocess':
-            util = util_dict[identity]
-            _parameters = json.dumps(util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/'))
-            print('\tPreprocess,  id: ' + _identity)
+            if identity in util_dict:
+                util = util_dict[identity]
+                b = util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/')
+                print('Found boxes: ' + str(b))
+                _parameters = json.dumps(b, default=convert)
+                print('\tPreprocess,  id: ' + _identity)
+            else:
+                _parameters = 'bad ID'
         elif request == 'end':
             try:
                 del(util_dict[identity])
@@ -137,23 +146,27 @@ class RequestHandler(BaseHTTPRequestHandler):
                 else:
                     _parameters = 'no such file'
         elif request == 'process':
-            util = util_dict[identity]
-            filename = SERVER_WORKING_DIR + '/' + identity + '/output/final.jpg'
-            util.process([int(i) for i in parameters.split(',')], filename)
-            if os.path.exists(filename):
-                f = open(filename)
-                self.send_response(200)
-                self.send_header('Content-type', 'application/octet-stream')
-                self.send_header('Content-length', os.path.getsize(filename))
-                self.set_params(_identity, _request, _parameters)
-                self.end_headers()
-                self.wfile.write(f.read())
-                f.close()
-                print("\tProcessed GET request")
-                print('\t_id: ' + _identity + ', _request: ' + _request + ', _params: ' + _parameters)
-                return
+            if identity not in util_dict:
+                _parameters = 'bad ID'
+                print('\tBad ID')
             else:
-                _parameters = 'could not locate output file'
+                util = util_dict[identity]
+                filename = SERVER_WORKING_DIR + '/' + identity + '/output/final.jpg'
+                util.process([int(i) for i in parameters.split(',')], filename)
+                if os.path.exists(filename):
+                    f = open(filename)
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/octet-stream')
+                    self.send_header('Content-length', os.path.getsize(filename))
+                    self.set_params(_identity, _request, _parameters)
+                    self.end_headers()
+                    self.wfile.write(f.read())
+                    f.close()
+                    print("\tProcessed GET request")
+                    print('\t_id: ' + _identity + ', _request: ' + _request + ', _params: ' + _parameters)
+                    return
+                else:
+                    _parameters = 'could not locate output file'
         else:
             _parameters = "ILLEGAL_REQUEST"
         self.send_response(200)

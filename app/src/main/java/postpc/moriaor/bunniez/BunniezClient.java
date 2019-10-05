@@ -45,7 +45,7 @@ class BunniezClient {
 
 
     void parseBoundingBoxes(String json) {
-        
+
 
     }
 
@@ -150,11 +150,8 @@ class BunniezClient {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                error = !response.header("params", "").equals("ok");
-                if (!error) {
-                    String text = response.header("params", "");
-                    parseBoundingBoxes(text);
-                }
+                String text = response.header("params", "");
+                parseBoundingBoxes(text);
                 runnable.run();
             }
         };
