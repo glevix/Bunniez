@@ -7,8 +7,10 @@ import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -18,8 +20,14 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -36,6 +44,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     MainUtils mainUtils;
 
 
+    public static void copyFile(File src, File dst) throws IOException {
+        InputStream in = new FileInputStream(src);
+        try {
+            OutputStream out = new FileOutputStream(dst);
+            try {
+                // Transfer bytes from in to out
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+            } finally {
+                out.close();
+            }
+        } finally {
+            in.close();
+        }
+    }
 
 
     @Override
@@ -150,8 +176,75 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void onGalleryResult() {
+    private void onGalleryResult(Intent data) {
+        // https://stackoverflow.com/questions/39225901/how-to-open-gallery-to-select-multiple-image
+        String imageEncoded;
+        List<String> imagesEncodedList;
+        ArrayList<File> imageFiles = new ArrayList<>();
 
+        // Get the paths of the images chosen
+        String[] filePathColumn = { MediaStore.Images.Media.DATA };
+        imagesEncodedList = new ArrayList<String>();
+        if(data.getData()!=null){
+            // TODO: ERROR only 1 image, start again
+        }else {
+            if (data.getClipData() != null) {
+                ClipData mClipData = data.getClipData();
+                ArrayList<Uri> mArrayUri = new ArrayList<Uri>();
+                for (int i = 0; i < mClipData.getItemCount(); i++) {
+
+                    ClipData.Item item = mClipData.getItemAt(i);
+                    Uri uri = item.getUri();
+                    File f = null;
+                    try {
+                        f = FileUtil.from(MainActivity.this,uri);
+                    } catch (IOException e) {
+                        f= null;
+                    }
+                    if (f == null || !f.exists()) {
+                        // TODO: error getting file from gallery
+                    }
+                    imageFiles.add(f);
+
+//                    mArrayUri.add(uri);
+//                    // Get the cursor
+//                    Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
+//                    // Move to first row
+//                    cursor.moveToFirst();
+//
+//                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+//                    imageEncoded = cursor.getString(columnIndex);
+//                    imagesEncodedList.add(imageEncoded);
+//                    cursor.close();
+                }
+            }
+        }
+
+        // Make sure we got the right number of images
+        if (imagesEncodedList.size() != 3) {
+            // TODO: ERROR didnt choose 3 images, start again
+        }
+
+        // Copy the images into out working directory and add paths to imagePaths
+        for (File fin : imageFiles) {
+            File photoFile = null;
+            try {
+                photoFile = ImageUtils.createImageFile(this, PIC_NUM);
+                if (photoFile != null && photoFile.exists()) {
+                    copyFile(fin, photoFile);
+                } else {
+                    //TODO: error
+                }
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Log.i("error", "IOException");
+            }
+            imagePaths.add(photoFile.getAbsolutePath());
+            PIC_NUM++;
+        }
+
+        // Proceed to upload
+        this.onDoneSelection();
     }
 
     private void onCameraResult() {
@@ -176,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             this.onCameraResult();
         }
         if (requestCode == REQUEST_GALLERY && resultCode == Activity.RESULT_OK) {
-            this.onGalleryResult();
+            this.onGalleryResult(data);
         }
         if (requestCode == HTTP_LOADER_REQUEST) {
             this.onHttpResult(resultCode, data);
