@@ -21,6 +21,7 @@ public class LoaderActivity extends AppCompatActivity {
     String request;
     String displayText;
     ArrayList<String> imagePaths;
+    ArrayList<Integer> chosenIndices;
     int baseIndex;
     boolean[] didUpload;
 
@@ -52,6 +53,7 @@ public class LoaderActivity extends AppCompatActivity {
         request = intentCreatedMe.getStringExtra("request");
         imagePaths = intentCreatedMe.getStringArrayListExtra("imagePaths");
         baseIndex = intentCreatedMe.getIntExtra("baseIndex", 0);
+        chosenIndices = intentCreatedMe.getIntegerArrayListExtra("indices");
 
     }
 
@@ -68,7 +70,7 @@ public class LoaderActivity extends AppCompatActivity {
                     this.handleGetPic();
                     break;
                 case RequestTypes.PROCESS:
-                    this.handleProcess();
+//                    this.handleProcess();
                     break;
                 default:
                     Log.d(Bunniez.TAG, "Unknown Request Type");

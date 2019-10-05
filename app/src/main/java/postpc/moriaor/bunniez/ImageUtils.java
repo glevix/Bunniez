@@ -8,6 +8,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -66,6 +67,35 @@ class ImageUtils {
             e.printStackTrace();
         }
     }
+
+    static float resolveAspectFactor(int imageViewHeight, int imageViewWidth, int origHeight, int origWidth){
+        float newAspectFactor = 0;
+
+
+        if (imageViewHeight > imageViewWidth) {
+            //Aspect factor for Height
+            newAspectFactor = imageViewHeight / origHeight;
+
+        } else {
+            //Aspect factor for Width
+            newAspectFactor = imageViewWidth / origWidth;
+        }
+
+        float imgNewHeight = newAspectFactor * origHeight;
+        float imgNewWidth = newAspectFactor * origWidth;
+        Log.d(Bunniez.TAG, " Image New Height : " + imgNewHeight);
+        Log.d(Bunniez.TAG, " Image New Width : " + imgNewWidth);
+
+        if (imgNewHeight < imageViewHeight) {
+            newAspectFactor = imageViewHeight / origHeight;
+        } else if (imgNewWidth < imageViewWidth) {
+            newAspectFactor = imgNewWidth / origWidth;
+        }
+        return newAspectFactor;
+
+    }
+
+
 
 }
 
