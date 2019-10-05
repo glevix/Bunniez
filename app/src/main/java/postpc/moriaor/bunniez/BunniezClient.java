@@ -94,7 +94,12 @@ class BunniezClient {
     }
 
     String buildIndexString(ArrayList<Integer> indexes) {
-        return null;
+        String str = "";
+        for (Integer index : indexes) {
+            str = str + index.toString(index);
+            str = str + ",";
+        }
+        return str.substring(0, str.length() - 1);
     }
 
     /**
