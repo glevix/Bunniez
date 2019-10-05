@@ -104,7 +104,7 @@ public class LoaderActivity extends AppCompatActivity {
     private void handleUpload() {
         for(int i = 0; i < imagePaths.size(); i++) {
             File source = new File(imagePaths.get(i));
-            client.do_upload(composeRunnable("do_upload"), source, i);
+            client.do_upload(composeRunnable("do_upload"), imagePaths.get(i), i);
         }
     }
 }

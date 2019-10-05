@@ -28,19 +28,27 @@ class ImageUtils {
 
     static File createImageFile(Context context, int index) throws IOException {
         // Create an image file name
-        String filename = "input" + index;
-        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = new File(storageDir + File.separator + filename + ".jpg");
-        if (!image.exists()) {
-            try {
-                if (image.createNewFile())
-                    return image;
-                else
-                    return null;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        String filename = "input" + Integer.toString(index) + ".jpg";
+        String dirPath = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
+        File image = new File(dirPath + File.separator + filename);
+        if (!image.exists())
+            image.mkdirs();
+        if (!image.exists())
+            return null;
+
+//        String filename = "input" + Integer.toString(index);
+//        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+////        File image = new File(storageDir + File.separator + filename + ".jpg");
+////        if (!image.exists()) {
+////            try {
+////                if (image.createNewFile())
+////                    return image;
+////                else
+////                    return null;
+////            } catch (IOException e) {
+////                e.printStackTrace();
+////            }
+////        }
 //        File image = File.createTempFile(
 //                filename,  /* prefix */
 //                ".jpg",         /* suffix */

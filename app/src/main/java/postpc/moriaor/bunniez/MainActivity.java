@@ -7,6 +7,7 @@ import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -73,26 +74,64 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         {
             requestPermissions(new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
         }
-        else
-        {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            File photoFile = null;
-            try {
-                photoFile = ImageUtils.createImageFile(this, PIC_NUM);
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                Log.i("error", "IOException");
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null && takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                Uri photoURI = FileProvider.getUriForFile(MainActivity.this,
-                        BuildConfig.APPLICATION_ID + ".provider", photoFile);
-                getApplicationContext().grantUriPermission(getApplicationContext().getPackageName(), photoURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                currentPhotoUri = photoURI;
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        else {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                File photoFile = null;
+                try {
+                    photoFile = ImageUtils.createImageFile(this, PIC_NUM);
+                } catch (IOException ex) {
+                    // Error occurred while creating the File
+                    Log.i("error", "IOException");
+                }
+                boolean exists = photoFile.exists();
+
+
+                if (exists) {
+                    try {
+                        Uri photoURI = FileProvider.getUriForFile(this,
+                                BuildConfig.APPLICATION_ID + ".provider",
+                                photoFile);
+                        grantUriPermission(getPackageName(), photoURI, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        currentPhotoUri = Uri.parse(photoFile.getAbsolutePath());
+                        File f = new File(currentPhotoUri.getPath());
+                        exists = f.exists();
+//                        if (exists) {
+//                        takePictureIntent.setData(photoURI);
+//                        takePictureIntent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+//                        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+//                        }
+
+                    } catch (Exception e) {
+                        Log.d("bunbun", "oh no");
+                    }
+
+
+                }
             }
         }
+//        {
+//            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//            File photoFile = null;
+//            try {
+//                photoFile = ImageUtils.createImageFile(this, PIC_NUM);
+//            } catch (IOException ex) {
+//                // Error occurred while creating the File
+//                Log.i("error", "IOException");
+//            }
+//            // Continue only if the File was successfully created
+//            if (photoFile != null && takePictureIntent.resolveActivity(getPackageManager()) != null) {
+////                Uri photoURI = FileProvider.getUriForFile(MainActivity.this,
+////                        BuildConfig.APPLICATION_ID + ".provider", photoFile);
+////                getApplicationContext().grantUriPermission(getApplicationContext().getPackageName(), photoURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                Uri photoURI = Uri.parse(photoFile.toString());
+//                currentPhotoUri = photoURI;
+//                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+//                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+//            }
+//        }
 
     }
 
@@ -135,8 +174,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void onCameraResult() {
         if(PIC_NUM >= PIC_NUM_LIMIT) {
             imagePaths.add(currentPhotoUri.getPath());
-            this.onDoneSelection();
-            PIC_NUM = 0;
+
+            File f = new File(currentPhotoUri.getPath());
+            boolean exists = f.exists();
+            if (exists) {
+                this.onDoneSelection();
+                PIC_NUM = 0;
+            }
+
+
         } else {
             imagePaths.add(currentPhotoUri.getPath());
             PIC_NUM ++;

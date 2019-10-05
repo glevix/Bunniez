@@ -82,11 +82,12 @@ class BunniezClient {
      * Send PUT "upload" request, with file
      *
      * @param runnable To run on completion. Should check for error
-     * @param file The file to send
+     * @param path Path to the file to send
      * @param index The index of the file (0,1,...)
      */
-    void do_upload(final Runnable runnable, File file, int index) {
+    void do_upload(final Runnable runnable, String path, int index) {
         MediaType mt = MediaType.parse("application/octet-stream");
+        File file = new File(path);
         Request request = new Request.Builder()
                 .put(RequestBody.create(mt, file))
                 .header("request", "upload")
