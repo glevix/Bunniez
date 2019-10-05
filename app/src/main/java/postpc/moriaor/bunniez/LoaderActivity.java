@@ -52,25 +52,32 @@ public class LoaderActivity extends AppCompatActivity {
     private void postRequest() {
         try {
             switch (request) {
-                case "preprocess":
+                case RequestTypes.PREPROCESS:
                     this.handlePreprocess();
                     break;
-                case "upload":
+                case RequestTypes.UPLOAD:
                     this.handleUpload();
                     break;
-
-
+                case RequestTypes.GET_PIC:
+                    this.handleGetPic();
+                    break;
+                case RequestTypes.PROCESS:
+                    this.handleProcess();
+                    break;
+                default:
+                    Log.d(Bunniez.TAG, "Unknown Request Type");
+                    break;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            returnWithResult(RESULT_CANCELED, "Request Failed");
+            returnWResultWithDelay(RESULT_CANCELED, "Request Failed");
         }
     }
 
-    private void returnWithResult(final int resultCode, final String text) {
+    private void returnWResultWithDelay(final int resultCode, final String text) {
         Runnable runnable = new Runnable() {
             public void run() {
-                Log.i("Tag", "Runnable running!");
+                Log.i(Bunniez.TAG, "Runnable running!");
                 Intent data = new Intent();
                 data.setData(Uri.parse(text));
                 setResult(resultCode, data);
@@ -86,63 +93,46 @@ public class LoaderActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if(client.error) {
-                    Log.i("bunny is sad", requestName+ " request failed");
+                    Log.i(Bunniez.TAG, requestName+ " request failed");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            returnWithResult(RESULT_CANCELED, "Request Failed");
+                            returnWResultWithDelay(RESULT_CANCELED, "Request Failed");
                         }
                     });
                 } else {
-                    Log.i("bunny is happy", requestName+ "request completed successfully");
+                    Log.i(Bunniez.TAG, requestName+ "request completed successfully");
 
-                    //Added just fo testing, feel free to delete:
-                    File output = new File(imagePaths.get(0));
-                    client.do_get_pic(composeGetPicRunnable(0), 0, output);
 
                 }
             }
         };
     }
 
-    private Runnable composeGetPicRunnable(int index) {
-       return new Runnable() {
-           @Override
-           public void run() {
-               if(client.error) {
-                   Log.i("bunny is sad", "getPic request failed");
-               } else {
-                   Log.i("bunny is happy", "getPic request completed successfully");
-                   // save file to bitmap and when done - start selectFaces activity
+    private void handleProcess() {
 
-               }
-           }
-       };
     }
 
     private void handleGetPic() {
         for (int i = 0; i < imagePaths.size(); i++) {
             File output = new File(imagePaths.get(i));
-            client.do_get_pic(composeGetPicRunnable(i), i, output);
+            client.do_get_pic(composeRunnable(RequestTypes.GET_PIC), i, output);
         }
     }
 
 
     private void handlePreprocess() {
-        client.do_preprocess(composeRunnable("do_preprocess"), baseIndex);
+        client.do_preprocess(composeRunnable(RequestTypes.PREPROCESS), baseIndex);
     }
 
     private void handleUpload() {
         for (int i = 0; i < imagePaths.size(); i++) {
-            File source = new File(imagePaths.get(i));
-            client.do_upload(composeRunnable("do_upload"), imagePaths.get(i), i);
+            client.do_upload(composeRunnable(RequestTypes.UPLOAD), imagePaths.get(i), i);
         }
 
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
+    private void startSelectFacesActivity() {
 
     }
 }

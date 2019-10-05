@@ -19,29 +19,44 @@ import com.squareup.picasso.PicassoProvider;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 
 public class SelectFacesActivity extends AppCompatActivity {
 
     private ImageView first;
     private Uri imageUri;
+    private ArrayList<String> imagePaths;
+    ArrayList<Bitmap> images;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_faces);
         first = findViewById(R.id.image);
-        Bitmap bmp = null;
-        String filename = getIntent().getStringExtra("image");
+        imagePaths = getIntent().getStringArrayListExtra("imagePath");
         try {
-            FileInputStream is = this.openFileInput(filename);
-            bmp = BitmapFactory.decodeStream(is);
+//            FileInputStream is = this.openFileInput(filename);
+//            bmp = BitmapFactory.decodeStream(is);
+//            is.close();
+//            if (bmp != null) {
+//                first.setImageBitmap(bmp);
+//            }
+            saveImagesBitmaps();
 
-            is.close();
-            if (bmp != null) {
-                first.setImageBitmap(bmp);
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void initInstances() {
+
+    }
+
+
+    private void saveImagesBitmaps() {
+        for(int i = 0; i < imagePaths.size(); i++) {
+            images.add(BitmapFactory.decodeFile(imagePaths.get(i)));
+        }
+
     }
 }

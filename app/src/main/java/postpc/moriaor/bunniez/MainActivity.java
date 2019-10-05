@@ -7,12 +7,9 @@ import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -34,12 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static final int PIC_NUM_LIMIT = 1;
     private int PIC_NUM = 1;
 
-    private Bitmap mImageBitmap;
     private Uri currentPhotoUri;
-
-    private String firstImagePath;
-    private String secondImagePath;
-    private String thirdImagePath;
 
     private ArrayList<String> imagePaths;
     MainUtils mainUtils;
@@ -154,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void onDoneSelection() {
-        this.startLoaderActivity("Uploading Your Photos...", "upload");
+        this.startLoaderActivity("Uploading Your Photos...", RequestTypes.UPLOAD);
     }
 
     private void startLoaderActivity(String display, String request) {

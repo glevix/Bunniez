@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Dictionary;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -17,6 +18,15 @@ import okhttp3.Response;
 
 class BoundingBox {
     int x, y, w, h;
+}
+
+class RequestTypes  {
+    static final String INIT = "init";
+    static final String PREPROCESS = "preprocess";
+    static final String UPLOAD = "upload";
+    static final String GET_PIC = "get_pic";
+    static final String PROCESS = "process";
+    static final String END = "end";
 }
 
 class BunniezClient {
