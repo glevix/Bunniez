@@ -1,17 +1,26 @@
 package postpc.moriaor.bunniez;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
+
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class SelectFacesActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -25,10 +34,13 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     private Button rightArrow;
     private Button leftArrow;
     private Button doneButton;
+    private View leftBox;
 
-    private ArrayList<String> imagePaths;
+    BunniezClient client;
+    ArrayList<String> imagePaths;
     ArrayList<Bitmap> thumbnails;
     ArrayList<Bitmap> fullSizeImages;
+    ArrayList<Integer> chosenBoxes;
     Bitmap selected;
     int selectedImageIndex;
 
@@ -39,11 +51,15 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         initInstances();
         setOnClickListenters();
         imagePaths = getIntent().getStringArrayListExtra("imagePaths");
+        Bunniez bunniez = (Bunniez) getApplicationContext();
+        client = bunniez.getClient();
         thumbnails = new ArrayList<>();
         fullSizeImages = new ArrayList<>();
         try {
             saveImagesBitmaps();
             loadImages();
+//            processBoundingBoxes();
+            drawBoundingBox();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,6 +74,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         leftThumbnail = findViewById(R.id.leftImage);
         middleThumbnail = findViewById(R.id.middleImage);
         doneButton = findViewById(R.id.done_button);
+        leftBox = findViewById(R.id.left_box);
     }
 
     private void setOnClickListenters() {
@@ -94,6 +111,77 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                 thumbnail.setImageBitmap(thumbnails.get(i));
             }
         }
+    }
+
+
+    private void drawBoundingBox() {
+        ArrayList<ArrayList<BoundingBox>> boxes = client.boxes;
+        ArrayList<BoundingBox> currentBox = boxes.get(selectedImageIndex);
+        int origHeight = selected.getHeight();
+        int origWidth = selected.getWidth();
+//        int imViewHeight = selectedImage.getHeight();
+//        int imViewWidth = selectedImage.getWidth();
+        int x = currentBox.get(selectedImageIndex).x;
+        int y = currentBox.get(selectedImageIndex).y;
+        int h = currentBox.get(selectedImageIndex).h;
+        int w = currentBox.get(selectedImageIndex).w;
+        int yOffset = selectedImage.getTop();
+        int xOffset = selectedImage.getLeft();
+        int xScroll = selectedImage.getScrollX();
+        int yScroll = selectedImage.getScrollY();
+        int[] location = new int[2];
+        selectedImage.getLocationOnScreen(location);
+
+        int xLoc = location[0];
+        int yLoc = location[1];
+
+        ConstraintLayout container = findViewById(R.id.container);
+
+        Button btn1 = new Button(this);
+        btn1.setBackgroundResource(R.drawable.bounding_box);
+        btn1.setX(x + xLoc);
+        btn1.setY(y + yLoc);
+        btn1.setHeight(h);
+        btn1.setWidth(w);
+        container.addView(btn1);
+        btn1.setVisibility(View.VISIBLE);
+        btn1.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                // put code on click operation
+            }
+        });
+    }
+
+    private void processBoundingBoxes() {
+        ArrayList<ArrayList<BoundingBox>> boxes = client.boxes;
+        ArrayList<BoundingBox> currentBox = boxes.get(selectedImageIndex);
+        int origHeight = selected.getHeight();
+        int origWidth = selected.getWidth();
+        int imViewHeight = selectedImage.getHeight();
+        int imViewWidth = selectedImage.getWidth();
+        int x = currentBox.get(0).x;
+        int y = currentBox.get(0).y;
+        float newAspectFactor = ImageUtils.resolveAspectFactor(imViewHeight, imViewWidth, origHeight, origWidth);
+        Matrix m = selectedImage.getImageMatrix();
+
+//        leftBox.setLayoutParams(layoutParams);
+
+
+        RectF drawableRect = new RectF(x,
+                y,
+                ((x * newAspectFactor) + imViewHeight) / newAspectFactor,
+                origHeight);
+        RectF viewRect = new RectF(0,
+                0,
+                imViewWidth,
+                imViewHeight);
+        m.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.FILL);
+        selectedImage.setImageMatrix(m);
+        selectedImage.setScaleType(ImageView.ScaleType.MATRIX);
+        selectedImage.setImageBitmap(selected);
+
     }
 
     @Override
@@ -147,6 +235,8 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
     private void handleIndexChange() {
         ImageView currentThumbnail = mapIndexToImage(selectedImageIndex);
+//        FrameLayout frame = findViewById(R.id.image_frame);
+//        frame.setPadding(5, 5, 5, 5);
         currentThumbnail.setBackgroundResource(R.drawable.image_border);
         selected = fullSizeImages.get(selectedImageIndex);
         selectedImage.setImageBitmap(selected);
@@ -170,6 +260,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
          loaderIntent.putExtra("display", getString(R.string.loader_prepare));
          loaderIntent.putExtra("request", RequestTypes.PROCESS);
          loaderIntent.putStringArrayListExtra("imagePaths", imagePaths);
+         loaderIntent.putIntegerArrayListExtra("indices", chosenBoxes);
          if(loaderIntent.resolveActivity(getPackageManager()) != null) {
              startActivityForResult(loaderIntent, MainActivity.HTTP_LOADER_REQUEST);
          }

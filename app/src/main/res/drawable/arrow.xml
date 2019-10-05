@@ -10,7 +10,7 @@
                 android:shape="rectangle" >
                 <stroke android:color="@color/transparent" android:width="10dp"/>
                 <solid
-                    android:color="@color/black_overlay" />
+                    android:color="@color/arrow_color" />
             </shape>
         </rotate>
     </item>

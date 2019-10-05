@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient"
+    android:id="@+id/container"
     tools:context=".SelectFacesActivity">
 
     <TextView
@@ -19,7 +20,17 @@
         android:textAlignment="center"
         android:fontFamily="sans-serif"
         android:textSize="25sp"
+        android:textStyle="bold"
         android:textColor="@color/secondaryColor"
+        />
+
+    <Button
+        android:id="@+id/left_box"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="@id/selectedImage"
+        app:layout_constraintStart_toStartOf="@id/selectedImage"
+        android:background="@drawable/bounding_box"
         />
 
     <ImageView
@@ -27,11 +38,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:contentDescription="@string/content_description"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/instructions"
         android:adjustViewBounds="true"
+        android:layout_marginTop="15dp"
         android:layout_marginEnd="15dp"
         android:layout_marginStart="15dp"
         android:background="@drawable/image_background"
@@ -42,7 +53,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="@string/content_description"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/done_button"
         app:layout_constraintEnd_toStartOf="@id/middleImage"
         app:layout_constraintStart_toEndOf="@id/left_arrow"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
@@ -55,7 +66,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
          android:contentDescription="@string/content_description"
-        app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintBottom_toTopOf="@+id/done_button"
         app:layout_constraintEnd_toStartOf="@id/rightImage"
         app:layout_constraintStart_toEndOf="@id/leftImage"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
@@ -68,7 +79,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
          android:contentDescription="@string/content_description"
-        app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintBottom_toTopOf="@+id/done_button"
         app:layout_constraintEnd_toStartOf="@id/right_arrow"
         app:layout_constraintStart_toEndOf="@id/middleImage"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
@@ -81,20 +92,22 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:scaleX="-1"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/done_button"
         app:layout_constraintEnd_toStartOf="@id/leftImage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
+        android:layout_marginEnd="15dp"
         android:background="@drawable/arrow"/>
 
     <Button
         android:id="@+id/right_arrow"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/done_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/rightImage"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
+        android:layout_marginStart="15dp"
         android:background="@drawable/arrow"/>
 
     <Button
@@ -107,8 +120,8 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/middleImage"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginTop="25dp"
         android:layout_marginBottom="25dp"
+        android:textSize="22sp"
         android:background="@drawable/button_shape"
         />
 

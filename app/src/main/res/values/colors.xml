@@ -11,4 +11,6 @@
 
     <color name="black_overlay">#1F000000</color>
     <color name="transparent">#00000000</color>
+    <color name="arrow_color">#9EC2B9</color>
+
 </resources>
