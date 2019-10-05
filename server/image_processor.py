@@ -58,8 +58,8 @@ def get_faces(image):
     faces = cascade.detectMultiScale(
         grey,
         scaleFactor=1.1,
-        minNeighbors=10,
-        minSize=(30, 30),
+        minNeighbors=14,
+        minSize=(45, 45),
         flags=cv2.CASCADE_SCALE_IMAGE
     )
     for (x, y, w, h) in faces:

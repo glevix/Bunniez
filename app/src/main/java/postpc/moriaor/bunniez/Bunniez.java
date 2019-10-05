@@ -14,6 +14,10 @@ public class Bunniez extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+    }
+
+    public void initNewClient() {
         client =  new BunniezClient(SERVER_URL);
         try {
             client.do_init(new Runnable() {
@@ -35,8 +39,9 @@ public class Bunniez extends Application {
         }
     }
 
-
     public BunniezClient getClient() {
+        if (client == null)
+            client =  new BunniezClient(SERVER_URL);
         return client;
     }
 

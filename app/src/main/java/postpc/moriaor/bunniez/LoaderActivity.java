@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -177,8 +178,38 @@ public class LoaderActivity extends AppCompatActivity {
         };
     }
 
-    private void handleProcess() {
+    private Runnable composeProcessRunnable(){
+        return new Runnable() {
+            @Override
+            public void run() {
+                if(client.error) {
+                    onRequestFailure();
+                }
+                else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            startDisplayResultActivity();
+                        }
+                    });
+                }
 
+            }
+        };
+    }
+
+
+    private void handleProcess(int[] indexes) {
+        File output = null;
+        try {
+            output = ImageUtils.createImageFile(this, "output");
+        } catch (IOException e) {
+            //TODO error
+        }
+        if (output == null || !output.exists()) {
+            //TODO error
+        }
+        client.do_process(composeProcessRunnable(), indexes, output);
     }
 
     private void handleGetPic() {
@@ -212,6 +243,11 @@ public class LoaderActivity extends AppCompatActivity {
             startActivity(selectFacesIntent);
         }
 
+    }
+
+
+    private void startDisplayResultActivity() {
+        //TODO create activity and put intent here
     }
 }
 
