@@ -1,11 +1,16 @@
 package postpc.moriaor.bunniez;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Dictionary;
 
 import okhttp3.Call;
@@ -34,7 +39,7 @@ class BunniezClient {
     String endpoint;
     String id;
     OkHttpClient client;
-    BoundingBox[][] boxes;
+    ArrayList<ArrayList<BoundingBox>> boxes;
     boolean error;
 
 
@@ -44,9 +49,48 @@ class BunniezClient {
     }
 
 
-    void parseBoundingBoxes(String json) {
+    void parseBoundingBoxes(String str) {
+        str = str.replaceAll("\\s+",""); // remove all whitespace
+        if (str == null || str.startsWith("error") || str.charAt(0) != '[') {
+            error = true;
+            return;
+        }
+        int c = 1;
+        ArrayList<ArrayList<BoundingBox>> boxListList = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            if (str.charAt(c) != '[') {
+                error = true;
+                return;
+            }
+            c++;
+            ArrayList<BoundingBox> boxlist = new ArrayList<>();
+            while (str.charAt(c) != ']') {
+                if (str.charAt(c) == ',')
+                    c++;
+                if (str.charAt(c) != '(') {
+                    error = true;
+                    return;
+                }
+                BoundingBox box = new BoundingBox();
+                c++;
+                int start = c;
+                while (str.charAt(c) != ')')
+                    c++;
+                int end = c;
+                c++;
 
-
+                String boxString = str.substring(start, end);
+                String[] strInts = boxString.split(",");
+                box.x = Integer.parseInt(strInts[0]);
+                box.y = Integer.parseInt(strInts[1]);
+                box.w = Integer.parseInt(strInts[2]);
+                box.h = Integer.parseInt(strInts[3]);
+                boxlist.add(box);
+            }
+            c += 2;
+            boxListList.add(boxlist);
+        }
+        boxes = boxListList;
     }
 
     String buildIndexString(int[] indexes) {

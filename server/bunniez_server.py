@@ -63,8 +63,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             if identity in util_dict:
                 util = util_dict[identity]
                 b = util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/')
-                print('Found boxes: ' + str(b))
-                _parameters = json.dumps(b, default=convert)
+                print('\tFound boxes: ' + str(b))
+                # _parameters = json.dumps(b, default=convert)
+                _parameters = str(b)
                 print('\tPreprocess,  id: ' + _identity)
             else:
                 _parameters = 'bad ID'

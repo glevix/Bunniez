@@ -106,6 +106,7 @@ class Imutils:
     def __init__(self):
         self.ready = False
         self.output = None
+        self.input_files = [None] * 3
         self.images = [None] * 3
         self.boxes = []
         self.faces = []
@@ -115,8 +116,7 @@ class Imutils:
         if len(self.images) >= MAX_IMAGES:
             print('Exceeded max images')
             return False
-        image = cv2.imread(path)
-        self.images[index] = image
+        self.input_files[index] = path
         self.ready = False
         return True
 
@@ -140,11 +140,14 @@ class Imutils:
         """
         if len(self.images) < MIN_IMAGES:
             return None
+        for i in range(3):
+            image = cv2.imread(self.input_files[i])
+            self.images[i] = image
         self.base_index = base_index
         register(self.images, self.base_index)
         for image in self.images:
             f, b = get_faces(image)
-            print('found ' + str(len(f)) + ' faces')
+            print('\tfound ' + str(len(f)) + ' faces')
             self.faces.append(f)
             self.boxes.append(b)
         for i in range(len(self.images)):
