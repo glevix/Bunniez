@@ -6,6 +6,7 @@ import androidx.core.content.FileProvider;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -23,25 +24,28 @@ import java.util.ArrayList;
 
 public class SelectFacesActivity extends AppCompatActivity {
 
-    private ImageView first;
-    private Uri imageUri;
+    final int THUMBSIZE = 128;
+
+
+    private ImageView rightThumbnail;
+    private ImageView leftThumbnail;
+    private ImageView middleThumbnail;
+    private ImageView selectedImage;
+
     private ArrayList<String> imagePaths;
     ArrayList<Bitmap> images;
+    Bitmap selected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_faces);
-        first = findViewById(R.id.image);
-        imagePaths = getIntent().getStringArrayListExtra("imagePath");
+        initInstances();
+        imagePaths = getIntent().getStringArrayListExtra("imagePaths");
+        images = new ArrayList<>();
         try {
-//            FileInputStream is = this.openFileInput(filename);
-//            bmp = BitmapFactory.decodeStream(is);
-//            is.close();
-//            if (bmp != null) {
-//                first.setImageBitmap(bmp);
-//            }
             saveImagesBitmaps();
+            loadImages();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -49,14 +53,41 @@ public class SelectFacesActivity extends AppCompatActivity {
     }
 
     private void initInstances() {
-
+        selectedImage = findViewById(R.id.selectedImage);
+        rightThumbnail = findViewById(R.id.rightImage);
+        leftThumbnail = findViewById(R.id.leftImage);
+        middleThumbnail = findViewById(R.id.middleImage);
     }
 
 
     private void saveImagesBitmaps() {
+        selected = BitmapFactory.decodeFile(imagePaths.get(0));
         for(int i = 0; i < imagePaths.size(); i++) {
-            images.add(BitmapFactory.decodeFile(imagePaths.get(i)));
+            images.add(ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(imagePaths.get(i)), THUMBSIZE, THUMBSIZE));
         }
-
     }
+
+    private void loadImages() {
+        selectedImage.setImageBitmap(selected);
+        for(int i = 0; i < imagePaths.size(); i++) {
+            ImageView thumbnail = mapIndexToImage(i);
+            if(thumbnail != null) {
+                thumbnail.setImageBitmap(images.get(i));
+            }
+        }
+    }
+
+    private ImageView mapIndexToImage(int index) {
+        switch (index) {
+            case 0:
+                return leftThumbnail;
+            case 1:
+                return middleThumbnail;
+            case 2:
+                return rightThumbnail;
+            default:
+                return null;
+        }
+    }
+
 }

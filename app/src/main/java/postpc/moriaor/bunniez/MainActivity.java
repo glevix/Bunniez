@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static final int HTTP_LOADER_REQUEST = 221;
     static final int EXTERNAL_STORAGE_PERMISSION_CODE = 122;
     static final int MY_CAMERA_PERMISSION_CODE = 0;
-    static final int PIC_NUM_LIMIT = 1;
+    static final int PIC_NUM_LIMIT = 3;
     private int PIC_NUM = 1;
 
     private Uri currentPhotoUri;
@@ -82,54 +82,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // Error occurred while creating the File
                     Log.i("error", "IOException");
                 }
-                boolean exists = photoFile.exists();
 
-
-                if (exists) {
+                if (photoFile != null && photoFile.exists()) {
                     try {
                         Uri photoURI = FileProvider.getUriForFile(this,
                                 BuildConfig.APPLICATION_ID + ".provider",
                                 photoFile);
                         grantUriPermission(getPackageName(), photoURI, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         currentPhotoUri = Uri.parse(photoFile.getAbsolutePath());
-                        File f = new File(currentPhotoUri.getPath());
-                        exists = f.exists();
-//                        if (exists) {
-//                        takePictureIntent.setData(photoURI);
-//                        takePictureIntent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-//                        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
                             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-//                        }
 
                     } catch (Exception e) {
-                        Log.d("bunbun", "oh no");
+                        Log.d(Bunniez.TAG, "oh no");
                     }
 
 
                 }
             }
         }
-//        {
-//            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//            File photoFile = null;
-//            try {
-//                photoFile = ImageUtils.createImageFile(this, PIC_NUM);
-//            } catch (IOException ex) {
-//                // Error occurred while creating the File
-//                Log.i("error", "IOException");
-//            }
-//            // Continue only if the File was successfully created
-//            if (photoFile != null && takePictureIntent.resolveActivity(getPackageManager()) != null) {
-////                Uri photoURI = FileProvider.getUriForFile(MainActivity.this,
-////                        BuildConfig.APPLICATION_ID + ".provider", photoFile);
-////                getApplicationContext().grantUriPermission(getApplicationContext().getPackageName(), photoURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//                Uri photoURI = Uri.parse(photoFile.toString());
-//                currentPhotoUri = photoURI;
-//                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-//                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-//            }
-//        }
 
     }
 
@@ -160,15 +132,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void onHttpResult(int resultCode) {
+    private void onHttpResult(int resultCode, Intent data) {
         if(resultCode == RESULT_CANCELED) {
+            String text = data.getDataString();
             Runnable retry = new Runnable() {
                 @Override
                 public void run() {
                     //
                 }
             };
-            mainUtils.popAlertDialog(retry, "Upload Failed",
+            mainUtils.popAlertDialog(retry, text,
                     "Something went wrong. Please try again soon.",
                     "OK",
                     "Cancel");
@@ -183,16 +156,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void onCameraResult() {
         if(PIC_NUM >= PIC_NUM_LIMIT) {
-            imagePaths.add(currentPhotoUri.getPath());
-
-            File f = new File(currentPhotoUri.getPath());
-            boolean exists = f.exists();
-            if (exists) {
+            if(currentPhotoUri != null && currentPhotoUri.getPath() != null) {
+                imagePaths.add(currentPhotoUri.getPath());
                 this.onDoneSelection();
-                PIC_NUM = 0;
+
+
+
+
+//                File f = new File(currentPhotoUri.getPath());
+//                boolean exists = f.exists();
+//                if (exists) {
+//                    this.onDoneSelection();
+//                    PIC_NUM = 0;
+//                }
             }
-
-
         } else {
             imagePaths.add(currentPhotoUri.getPath());
             PIC_NUM ++;
@@ -211,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             this.onGalleryResult();
         }
         if (requestCode == HTTP_LOADER_REQUEST) {
-            this.onHttpResult(resultCode);
+            this.onHttpResult(resultCode, data);
         }
     }
 

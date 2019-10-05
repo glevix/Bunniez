@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background_gradient"
     tools:context=".SelectFacesActivity">
 
     <ImageView
@@ -15,17 +16,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginBottom="100dp"
         app:srcCompat="@drawable/background_gradient" />
 
     <ImageView
-        android:id="@+id/rightImage"
+        android:id="@+id/leftImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="photo"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/middleImage"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/selectedImage"
         app:srcCompat="@drawable/background_gradient" />
 
      <ImageView
@@ -34,20 +36,20 @@
         android:layout_height="wrap_content"
         android:contentDescription="photo"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/rightImage"
+        app:layout_constraintStart_toEndOf="@id/leftImage"
+         app:layout_constraintTop_toBottomOf="@id/selectedImage"
         app:srcCompat="@drawable/background_gradient" />
 
      <ImageView
-        android:id="@+id/leftImage"
+        android:id="@+id/rightImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="photo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/middleImage"
+        app:layout_constraintTop_toBottomOf="@id/selectedImage"
         app:srcCompat="@drawable/background_gradient" />
 
 <!--    <Button-->

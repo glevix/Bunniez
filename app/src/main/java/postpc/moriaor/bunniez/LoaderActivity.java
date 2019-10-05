@@ -70,7 +70,7 @@ public class LoaderActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            returnWResultWithDelay(RESULT_CANCELED, "Request Failed");
+            returnWResultWithDelay(RESULT_CANCELED, "Request Failed With Exception");
         }
     }
 
@@ -85,7 +85,7 @@ public class LoaderActivity extends AppCompatActivity {
             }
         };
         Handler handler = new android.os.Handler();
-        handler.postDelayed(runnable, 5000);
+        handler.postDelayed(runnable, 3000);
     }
 
     private Runnable composeRunnable(final String requestName) {
@@ -93,16 +93,27 @@ public class LoaderActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if(client.error) {
-                    Log.i(Bunniez.TAG, requestName+ " request failed");
+                    Log.i(Bunniez.TAG, requestName + " request failed");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            returnWResultWithDelay(RESULT_CANCELED, "Request Failed");
+                            startSelectFacesActivity();
                         }
                     });
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            returnWResultWithDelay(RESULT_CANCELED, "Request Failed with Client Error");
+//                        }
+//                    });
                 } else {
-                    Log.i(Bunniez.TAG, requestName+ "request completed successfully");
-
+                    Log.i(Bunniez.TAG, requestName+ " request completed successfully");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            startSelectFacesActivity();
+                        }
+                    });
 
                 }
             }
@@ -132,7 +143,15 @@ public class LoaderActivity extends AppCompatActivity {
 
     }
 
+
+
+
     private void startSelectFacesActivity() {
+        Intent selectFacesIntent = new Intent(this, SelectFacesActivity.class);
+        selectFacesIntent.putStringArrayListExtra("imagePaths", imagePaths);
+        if(selectFacesIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(selectFacesIntent);
+        }
 
     }
 }
