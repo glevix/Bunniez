@@ -2,6 +2,7 @@ package postpc.moriaor.bunniez;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
@@ -23,6 +24,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     private ImageView selectedImage;
     private Button rightArrow;
     private Button leftArrow;
+    private Button doneButton;
 
     private ArrayList<String> imagePaths;
     ArrayList<Bitmap> thumbnails;
@@ -55,6 +57,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         rightThumbnail = findViewById(R.id.rightImage);
         leftThumbnail = findViewById(R.id.leftImage);
         middleThumbnail = findViewById(R.id.middleImage);
+        doneButton = findViewById(R.id.done_button);
     }
 
     private void setOnClickListenters() {
@@ -64,6 +67,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         rightThumbnail.setOnClickListener(this);
         leftThumbnail.setOnClickListener(this);
         middleThumbnail.setOnClickListener(this);
+        doneButton.setOnClickListener(this);
 
         selectedImage.setClipToOutline(true);
         rightThumbnail.setClipToOutline(true);
@@ -107,6 +111,9 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
             case R.id.middleImage:
             case R.id.leftImage:
                 onThumbnailPress(v);
+                break;
+            case R.id.done_button:
+                onDone();
                 break;
         }
         handleIndexChange();
@@ -156,6 +163,16 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
      private void onThumbnailPress(View thumbnail) {
         selectedImageIndex = getThumbnailIndex(thumbnail);
+     }
+
+     private void onDone() {
+         Intent loaderIntent = new Intent(this, LoaderActivity.class);
+         loaderIntent.putExtra("display", getString(R.string.loader_prepare));
+         loaderIntent.putExtra("request", RequestTypes.PROCESS);
+         loaderIntent.putStringArrayListExtra("imagePaths", imagePaths);
+         if(loaderIntent.resolveActivity(getPackageManager()) != null) {
+             startActivityForResult(loaderIntent, MainActivity.HTTP_LOADER_REQUEST);
+         }
      }
 
 

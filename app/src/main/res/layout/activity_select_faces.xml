@@ -7,18 +7,33 @@
     android:background="@drawable/background_gradient"
     tools:context=".SelectFacesActivity">
 
+    <TextView
+        android:id="@+id/instructions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/instructions"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="20dp"
+        android:textAlignment="center"
+        android:fontFamily="sans-serif"
+        android:textSize="25sp"
+        android:textColor="@color/secondaryColor"
+        />
 
     <ImageView
         android:id="@+id/selectedImage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="photo"
+        android:contentDescription="@string/content_description"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginBottom="100dp"
         android:adjustViewBounds="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="15dp"
         android:background="@drawable/image_background"
         app:srcCompat="@drawable/background_gradient" />
 
@@ -26,7 +41,7 @@
         android:id="@+id/leftImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="photo"
+        android:contentDescription="@string/content_description"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/middleImage"
         app:layout_constraintStart_toEndOf="@id/left_arrow"
@@ -39,7 +54,7 @@
         android:id="@+id/middleImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="photo"
+         android:contentDescription="@string/content_description"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/rightImage"
         app:layout_constraintStart_toEndOf="@id/leftImage"
@@ -52,7 +67,7 @@
         android:id="@+id/rightImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="photo"
+         android:contentDescription="@string/content_description"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/right_arrow"
         app:layout_constraintStart_toEndOf="@id/middleImage"
@@ -63,8 +78,8 @@
 
     <Button
         android:id="@+id/left_arrow"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:scaleX="-1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/leftImage"
@@ -74,13 +89,28 @@
 
     <Button
         android:id="@+id/right_arrow"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/rightImage"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
         android:background="@drawable/arrow"/>
+
+    <Button
+        android:id="@+id/done_button"
+        android:layout_width="155dp"
+        android:layout_height="40dp"
+        android:text="@string/done"
+        android:textColor="@color/white"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/middleImage"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="25dp"
+        android:layout_marginBottom="25dp"
+        android:background="@drawable/button_shape"
+        />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

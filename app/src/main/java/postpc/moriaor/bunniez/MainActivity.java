@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void onDoneSelection() {
-        this.startLoaderActivity("Uploading Your Photos...", RequestTypes.UPLOAD);
+        this.startLoaderActivity(getString(R.string.loader_upload), RequestTypes.UPLOAD);
     }
 
     private void startLoaderActivity(String display, String request) {

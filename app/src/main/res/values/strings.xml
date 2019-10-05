@@ -4,6 +4,13 @@
     <string name="lets_start">Let\'s Get Started</string>
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
+    <string name="done">Done</string>
     <string name="title_activity_splash">Bunniez</string>
+    <string name="content_description">photo</string>
     <string name="splash_text">Just a second..</string>
+    <string name="instructions">Tap the faces you want in your picture</string>
+    <string name="loader_prepare">Preparing your photos&#8230;</string>
+    <string name="loader_upload">Uploading Your Photos&#8230;</string>
+
+
 </resources>
