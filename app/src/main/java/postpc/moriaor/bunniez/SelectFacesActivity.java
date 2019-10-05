@@ -11,17 +11,12 @@ import android.graphics.RectF;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class SelectFacesActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -35,15 +30,24 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     private Button rightArrow;
     private Button leftArrow;
     private Button doneButton;
-    private View leftBox;
+
 
     BunniezClient client;
     ArrayList<String> imagePaths;
     ArrayList<Bitmap> thumbnails;
     ArrayList<Bitmap> fullSizeImages;
     ArrayList<Integer> chosenBoxes;
+    ArrayList<Button> boxesButtons;
+
+    ViewTreeObserver.OnGlobalLayoutListener listener;
+
     Bitmap selected;
     int selectedImageIndex;
+
+    ArrayList<BoundingBox> currentBoxesList;
+
+    int xOffset;
+    int yOffset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,22 +56,35 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         initInstances();
         setOnClickListenters();
         imagePaths = getIntent().getStringArrayListExtra("imagePaths");
-        Bunniez bunniez = (Bunniez) getApplicationContext();
-        client = bunniez.getClient();
-        thumbnails = new ArrayList<>();
-        fullSizeImages = new ArrayList<>();
+
         try {
             saveImagesBitmaps();
             loadImages();
-//            processBoundingBoxes();
-            drawBoundingBox();
-
+            ViewTreeObserver vto = selectedImage.getViewTreeObserver();
+            listener = new ViewTreeObserver.OnGlobalLayoutListener(){
+                @Override public void onGlobalLayout(){
+                    int [] location = new int[2];
+                    selectedImage.getLocationOnScreen(location);
+                    xOffset = location[0];
+                    yOffset = location[1];
+                    runOnUiThread(drawBoundingBoxes());
+                }
+            };
+            vto.addOnGlobalLayoutListener(listener);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void initInstances() {
+        Bunniez bunniez = (Bunniez) getApplicationContext();
+        client = bunniez.getClient();
+        thumbnails = new ArrayList<>();
+        fullSizeImages = new ArrayList<>();
+        currentBoxesList = client.boxes.get(selectedImageIndex);
+        xOffset = 0;
+        yOffset = 0;
+
         rightArrow = findViewById(R.id.right_arrow);
         leftArrow = findViewById(R.id.left_arrow);
         selectedImage = findViewById(R.id.selectedImage);
@@ -75,7 +92,18 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         leftThumbnail = findViewById(R.id.leftImage);
         middleThumbnail = findViewById(R.id.middleImage);
         doneButton = findViewById(R.id.done_button);
-        leftBox = findViewById(R.id.left_box);
+
+        initBoxesButtons();
+    }
+
+    private void initBoxesButtons() {
+        boxesButtons = new ArrayList<>();
+        for(int i = 0; i< currentBoxesList.size(); i++) {
+            Button box = new Button(this);
+            box.setOnClickListener(this);
+            box.setId(i);
+            boxesButtons.add(box);
+        }
     }
 
     private void setOnClickListenters() {
@@ -116,74 +144,34 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     }
 
 
-    private void drawBoundingBox() {
-        ArrayList<ArrayList<BoundingBox>> boxes = client.boxes;
-        ArrayList<BoundingBox> currentBox = boxes.get(selectedImageIndex);
-        int origHeight = selected.getHeight();
-        int origWidth = selected.getWidth();
-//        int imViewHeight = selectedImage.getHeight();
-//        int imViewWidth = selectedImage.getWidth();
-        int x = currentBox.get(selectedImageIndex).x;
-        int y = currentBox.get(selectedImageIndex).y;
-        int h = currentBox.get(selectedImageIndex).h;
-        int w = currentBox.get(selectedImageIndex).w;
-        int yOffset = selectedImage.getTop();
-        int xOffset = selectedImage.getLeft();
-        int xScroll = selectedImage.getScrollX();
-        int yScroll = selectedImage.getScrollY();
-        int[] location = new int[2];
-        selectedImage.getLocationOnScreen(location);
-
-        int xLoc = location[0];
-        int yLoc = location[1];
-
-        ConstraintLayout container = findViewById(R.id.container);
-
-        Button btn1 = new Button(this);
-        btn1.setBackgroundResource(R.drawable.bounding_box);
-        btn1.setX(x + xLoc);
-        btn1.setY(y + yLoc);
-        btn1.setHeight(h);
-        btn1.setWidth(w);
-        container.addView(btn1);
-        btn1.setVisibility(View.VISIBLE);
-        btn1.setOnClickListener(new View.OnClickListener()
-        {
+    private Runnable drawBoundingBoxes() {
+        return new Runnable() {
             @Override
-            public void onClick(View v) {
-                // put code on click operation
+            public void run() {
+                ConstraintLayout container = SelectFacesActivity.this.findViewById(R.id.container);
+                removeButtons(container);
+                for(int i = 0; i < boxesButtons.size(); i++) {
+                    int x = currentBoxesList.get(i).x;
+                    int y = currentBoxesList.get(i).y;
+                    int h = currentBoxesList.get(i).h;
+                    int w = currentBoxesList.get(i).w;
+                    Button box = boxesButtons.get(i);
+                    box.setBackgroundResource(R.drawable.bounding_box);
+                    box.setX(x + xOffset);
+                    box.setY(y + yOffset / 2);
+                    box.setHeight(h);
+                    box.setWidth(w);
+                    container.addView(box);
+                    box.setVisibility(View.VISIBLE);
+                }
             }
-        });
+        };
     }
 
-    private void processBoundingBoxes() {
-        ArrayList<ArrayList<BoundingBox>> boxes = client.boxes;
-        ArrayList<BoundingBox> currentBox = boxes.get(selectedImageIndex);
-        int origHeight = selected.getHeight();
-        int origWidth = selected.getWidth();
-        int imViewHeight = selectedImage.getHeight();
-        int imViewWidth = selectedImage.getWidth();
-        int x = currentBox.get(0).x;
-        int y = currentBox.get(0).y;
-        float newAspectFactor = ImageUtils.resolveAspectFactor(imViewHeight, imViewWidth, origHeight, origWidth);
-        Matrix m = selectedImage.getImageMatrix();
-
-//        leftBox.setLayoutParams(layoutParams);
-
-
-        RectF drawableRect = new RectF(x,
-                y,
-                ((x * newAspectFactor) + imViewHeight) / newAspectFactor,
-                origHeight);
-        RectF viewRect = new RectF(0,
-                0,
-                imViewWidth,
-                imViewHeight);
-        m.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.FILL);
-        selectedImage.setImageMatrix(m);
-        selectedImage.setScaleType(ImageView.ScaleType.MATRIX);
-        selectedImage.setImageBitmap(selected);
-
+    private void removeButtons(ConstraintLayout container) {
+        for(int i = 0; i < boxesButtons.size(); i++) {
+            container.removeView(boxesButtons.get(i));
+        }
     }
 
     @Override
@@ -204,6 +192,11 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                 break;
             case R.id.done_button:
                 onDone();
+                break;
+            case 0:
+            case 1:
+            case 2:
+                onBoundingBoxPress(v);
                 break;
         }
         handleIndexChange();
@@ -237,9 +230,8 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
     private void handleIndexChange() {
         ImageView currentThumbnail = mapIndexToImage(selectedImageIndex);
-//        FrameLayout frame = findViewById(R.id.image_frame);
-//        frame.setPadding(5, 5, 5, 5);
         currentThumbnail.setBackgroundResource(R.drawable.image_border);
+        currentBoxesList = client.boxes.get(selectedImageIndex);
         selected = fullSizeImages.get(selectedImageIndex);
         selectedImage.setImageBitmap(selected);
 
@@ -268,5 +260,16 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
          }
      }
 
+     private void onBoundingBoxPress(View v) {
+        int boxIndex = boxesButtons.indexOf(v);
+        chosenBoxes.set(boxIndex, selectedImageIndex);
+     }
 
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        selectedImage.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
+
+    }
 }

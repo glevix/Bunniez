@@ -21,16 +21,6 @@ import java.io.IOException;
 
 class ImageUtils {
 
-    static Bitmap getBitmapFromUri(Context context, Uri imageUri) {
-        Bitmap bmp = null;
-        try {
-            bmp = MediaStore.Images.Media.getBitmap(context.getContentResolver(), imageUri);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return bmp;
-    }
-
     static File createImageFile(Context context, int index) throws IOException {
         // Create an image file name
         String filename = "input" + index + ".jpg";
@@ -68,49 +58,6 @@ class ImageUtils {
             return null;
         return image;
     }
-
-    static void processImage(String filename, Context context, Bitmap bmp) {
-        try {
-            //Write file
-            FileOutputStream stream = context.openFileOutput(filename, Context.MODE_PRIVATE);
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-
-            //Cleanup
-            stream.close();
-            bmp.recycle();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    static float resolveAspectFactor(int imageViewHeight, int imageViewWidth, int origHeight, int origWidth){
-        float newAspectFactor = 0;
-
-
-        if (imageViewHeight > imageViewWidth) {
-            //Aspect factor for Height
-            newAspectFactor = imageViewHeight / origHeight;
-
-        } else {
-            //Aspect factor for Width
-            newAspectFactor = imageViewWidth / origWidth;
-        }
-
-        float imgNewHeight = newAspectFactor * origHeight;
-        float imgNewWidth = newAspectFactor * origWidth;
-        Log.d(Bunniez.TAG, " Image New Height : " + imgNewHeight);
-        Log.d(Bunniez.TAG, " Image New Width : " + imgNewWidth);
-
-        if (imgNewHeight < imageViewHeight) {
-            newAspectFactor = imageViewHeight / origHeight;
-        } else if (imgNewWidth < imageViewWidth) {
-            newAspectFactor = imgNewWidth / origWidth;
-        }
-        return newAspectFactor;
-
-    }
-
-
 
 }
 
