@@ -40,6 +40,19 @@ class ImageUtils {
         return image;
     }
 
+    static File createImageFile(Context context, String name) throws IOException {
+        // Create an image file name
+        String filename = name + ".jpg";
+        String dirPath = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
+        File image = new File(dirPath + File.separator + filename);
+        if (image.exists())
+            image.delete();
+        image.createNewFile();
+        if (!image.exists())
+            return null;
+        return image;
+    }
+
     static void processImage(String filename, Context context, Bitmap bmp) {
         try {
             //Write file
