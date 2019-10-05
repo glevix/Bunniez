@@ -10,8 +10,8 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class LoaderActivity extends AppCompatActivity {
@@ -79,41 +79,78 @@ public class LoaderActivity extends AppCompatActivity {
         }
     }
 
+    private void runWithDelay(Runnable task, int delay) {
+        Handler handler = new android.os.Handler();
+        handler.postDelayed(task, delay);
+    }
+
     private void returnWResultWithDelay(final int resultCode, final String text) {
         Runnable runnable = new Runnable() {
             public void run() {
-                Log.i(Bunniez.TAG, "Runnable running!");
                 Intent data = new Intent();
                 data.setData(Uri.parse(text));
                 setResult(resultCode, data);
                 finish();
             }
         };
-        Handler handler = new android.os.Handler();
-        handler.postDelayed(runnable, 3000);
+        runWithDelay(runnable, 3000);
     }
 
-    private Runnable composeRunnable(final String requestName) {
+    private Runnable composePreprocessRunnable() {
         return new Runnable() {
             @Override
             public void run() {
                 if(client.error) {
-                    Log.i(Bunniez.TAG, requestName + " request failed");
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            returnWResultWithDelay(RESULT_CANCELED, "Request Failed with Client Error");
-                        }
-                    });
+                    Log.i(Bunniez.TAG, RequestTypes.PREPROCESS + " request failed");
+                    onRequestFailure();
                 } else {
-                    Log.i(Bunniez.TAG, requestName+ " request completed successfully");
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            startSelectFacesActivity();
-                        }
-                    });
+                    Log.i(Bunniez.TAG, RequestTypes.PREPROCESS+ " request completed successfully");
+                    handleGetPic();
+                }
+            }
+        };
+    }
 
+    private void onRequestFailure() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                returnWResultWithDelay(RESULT_CANCELED, request + " Failed with Client Error");
+            }
+        });
+    }
+
+    private void onReceiveImages() {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        startSelectFacesActivity();
+                    }
+                });
+            }
+        };
+//        runWithDelay(runnable, 3000);
+        runnable.run();
+    }
+
+
+    private Runnable composeGetPicRunnable(final int index) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                boolean[] arr = LoaderActivity.this.didUpload;
+                if(client.error) {
+                    arr[index] = false;
+                    onRequestFailure();
+                } else {
+                    arr[index] = true;
+                    if(arr[0] && arr[1] && arr[2]) {
+                        Arrays.fill(didUpload, false);
+                        onReceiveImages();
+                    }
                 }
             }
         };
@@ -123,21 +160,19 @@ public class LoaderActivity extends AppCompatActivity {
         return new Runnable() {
             @Override
             public void run() {
-                if(client.error) {
-                    LoaderActivity.this.didUpload[index] = false;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            returnWResultWithDelay(RESULT_CANCELED, "Request Failed with Client Error");
-                        }
-                    });
-
-                }
                 boolean[] arr = LoaderActivity.this.didUpload;
-                arr[index] = true;
-                if(arr[0] && arr[1] && arr[2]) {
-                    handlePreprocess();
+                if(client.error) {
+                    arr[index] = false;
+                    onRequestFailure();
                 }
+                else {
+                    arr[index] = true;
+                    if(arr[0] && arr[1] && arr[2]) {
+                        handlePreprocess();
+                        Arrays.fill(didUpload, false);
+                    }
+                }
+
             }
         };
     }
@@ -147,15 +182,17 @@ public class LoaderActivity extends AppCompatActivity {
     }
 
     private void handleGetPic() {
+        request= RequestTypes.GET_PIC;
         for (int i = 0; i < imagePaths.size(); i++) {
             File output = new File(imagePaths.get(i));
-            client.do_get_pic(composeRunnable(RequestTypes.GET_PIC), i, output);
+            client.do_get_pic(composeGetPicRunnable(i), i, output);
         }
     }
 
 
     private void handlePreprocess() {
-        client.do_preprocess(composeRunnable(RequestTypes.PREPROCESS), baseIndex);
+        request = RequestTypes.PREPROCESS;
+        client.do_preprocess(composePreprocessRunnable(), baseIndex);
     }
 
     private void handleUpload() {

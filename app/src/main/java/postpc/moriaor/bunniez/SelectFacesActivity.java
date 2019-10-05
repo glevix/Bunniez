@@ -10,6 +10,7 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.ViewAnimator;
@@ -22,7 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 
-public class SelectFacesActivity extends AppCompatActivity {
+public class SelectFacesActivity extends AppCompatActivity implements View.OnClickListener {
 
     final int THUMBSIZE = 128;
 
@@ -31,6 +32,8 @@ public class SelectFacesActivity extends AppCompatActivity {
     private ImageView leftThumbnail;
     private ImageView middleThumbnail;
     private ImageView selectedImage;
+    private Button rightArrow;
+    private Button leftArrow;
 
     private ArrayList<String> imagePaths;
     ArrayList<Bitmap> images;
@@ -53,6 +56,10 @@ public class SelectFacesActivity extends AppCompatActivity {
     }
 
     private void initInstances() {
+        rightArrow = findViewById(R.id.right_arrow);
+        leftArrow = findViewById(R.id.left_arrow);
+
+
         selectedImage = findViewById(R.id.selectedImage);
         rightThumbnail = findViewById(R.id.rightImage);
         leftThumbnail = findViewById(R.id.leftImage);
@@ -74,6 +81,14 @@ public class SelectFacesActivity extends AppCompatActivity {
             if(thumbnail != null) {
                 thumbnail.setImageBitmap(images.get(i));
             }
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.right_arrow:
+                break;
         }
     }
 

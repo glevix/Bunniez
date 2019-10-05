@@ -26,7 +26,7 @@
         android:contentDescription="photo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/middleImage"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/left_arrow"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
         app:srcCompat="@drawable/background_gradient" />
 
@@ -47,14 +47,30 @@
         android:layout_height="wrap_content"
         android:contentDescription="photo"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/right_arrow"
         app:layout_constraintStart_toEndOf="@id/middleImage"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
         app:srcCompat="@drawable/background_gradient" />
 
-<!--    <Button-->
-<!--        android:layout_width=""-->
-<!--        android:layout_height="" />-->
+    <Button
+        android:id="@+id/left_arrow"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/leftImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/selectedImage"
+        android:background="@drawable/right_arrow"/>
+
+    <Button
+        android:id="@+id/right_arrow"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/rightImage"
+        app:layout_constraintTop_toBottomOf="@id/selectedImage"
+        android:background="@drawable/right_arrow"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
