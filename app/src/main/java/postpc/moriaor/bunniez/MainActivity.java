@@ -9,7 +9,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -159,16 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(currentPhotoUri != null && currentPhotoUri.getPath() != null) {
                 imagePaths.add(currentPhotoUri.getPath());
                 this.onDoneSelection();
-
-
-
-
-//                File f = new File(currentPhotoUri.getPath());
-//                boolean exists = f.exists();
-//                if (exists) {
-//                    this.onDoneSelection();
-//                    PIC_NUM = 0;
-//                }
+                PIC_NUM = 0;
             }
         } else {
             imagePaths.add(currentPhotoUri.getPath());
