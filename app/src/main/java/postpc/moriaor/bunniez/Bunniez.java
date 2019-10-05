@@ -4,7 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 public class Bunniez extends Application {
-    static final String SERVER_URL = "http://192.168.56.1:8080";
+    static final String SERVER_URL = "http://192.168.43.154:8080";
 
     BunniezClient client;
     boolean didInit;
@@ -20,7 +20,7 @@ public class Bunniez extends Application {
                 public void run() {
                     didInit = true;
                     if (client.error) {
-                        Log.d("bunbun", "faild");
+                        Log.d("bunbun", "failed init");
                         hasSetupConnection = false;
                     } else {
                         Log.d("bunbun", client.id);

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 
 MAX_IMAGES = 4
 MIN_IMAGES = 2
@@ -136,7 +137,7 @@ class Imutils:
         if len(self.images) < MIN_IMAGES:
             return None
         self.base_index = base_index
-        register(self.images, base_index)
+        register(self.images, self.base_index)
         for image in self.images:
             f, b = get_faces(image)
             # print('found ' + str(len(f)) + ' faces')

@@ -73,6 +73,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         """
         Resource: https://f-o.org.uk/2017/receiving-files-over-http-with-python.html
         """
+        print("Received PUT request")
         global util_dict
         identity, request, parameters = self.get_params('PUT')
         _identity, _request, _parameters = identity, request, 'ok'
@@ -89,6 +90,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     with open(filename, 'wb') as output_file:
                         output_file.write(self.rfile.read(file_length))
                     util.add_image(filename)
+                    print('Added image, id: ' + _identity)
         else:
             _parameters = "ILLEGAL_REQUEST"
         self.send_response(200)

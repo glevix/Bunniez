@@ -96,6 +96,10 @@ public class LoaderActivity extends AppCompatActivity {
                 } else {
                     Log.i("bunny is happy", requestName+ "request completed successfully");
 
+                    //Added just fo testing, feel free to delete:
+                    File output = new File(imagePaths.get(0));
+                    client.do_get_pic(composeGetPicRunnable(0), 0, output);
+
                 }
             }
         };
