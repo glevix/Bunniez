@@ -1,7 +1,10 @@
 package postpc.moriaor.bunniez;
 
+import android.app.Application;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -39,6 +42,18 @@ class ImageUtils {
         if (!image.exists())
             return null;
         return image;
+    }
+
+    static boolean saveToGallery(Context context, File file) {
+        ContentValues values = new ContentValues();
+
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
+
+        context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        return true;
     }
 
     static File createImageFile(Context context, String name) throws IOException {
