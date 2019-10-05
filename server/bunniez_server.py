@@ -2,14 +2,11 @@
 
 import image_processor as iproc
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import cgi
-import ssl
-import json
-import os, shutil
+import os
+import shutil
 import socket
 from requests import get
 from distutils.dir_util import copy_tree
-import numpy as np
 
 DEBUG = True
 
@@ -17,6 +14,7 @@ SERVER_WORKING_DIR = 'server_working'
 
 util_dict = dict()
 count = 0
+
 
 def inject(sourcePath, targetPath):
     # First delete all files in target path
@@ -33,16 +31,29 @@ def inject(sourcePath, targetPath):
     copy_tree(sourcePath, targetPath)
 
 
+def bounding_boxes_to_string(boxes):
+    if len(boxes) != 3:
+        return 'error: should be 3 bounding box arrays'
+    num_faces = len(boxes[0])
+    if len(boxes[1]) != num_faces or len(boxes[2]) != num_faces:
+        return 'error: number of faces found in each image not equal'
+    if num_faces < 2:
+        return 'error: less that 2 faces found per picture'
+    return str(boxes)
+
+
 def print_error_status():
     for key in util_dict:
         print('ID: ' + key)
         print('\tImages length: ' + str(len(util_dict[key].images)))
         print('\tReady: ' + str(util_dict[key].ready))
 
+
 def get_new_id():
     global count
     count = count + 1
     return str(count - 1)
+
 
 def convert(o):
     return int(o)
@@ -83,9 +94,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 if DEBUG:
                     inject('test/', SERVER_WORKING_DIR + '/' + identity + '/input/')
                 b = util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/')
-                print('\tFound boxes: ' + str(b))
-                # _parameters = json.dumps(b, default=convert)
-                _parameters = str(b)
+                _parameters = bounding_boxes_to_string(b)
                 print('\tPreprocess,  id: ' + _identity)
             else:
                 _parameters = 'bad ID'
@@ -116,11 +125,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         identity, request, parameters = self.get_params('PUT')
         print('\tid: ' + identity + ', request: ' + request + ', params: ' + parameters)
         _identity, _request, _parameters = identity, request, 'ok'
-        util = util_dict[identity]
         if request == 'upload':
             if identity not in util_dict:
                 _parameters = 'bad ID'
             else:
+                util = util_dict[identity]
                 filename = SERVER_WORKING_DIR + '/' + identity + '/input/' + parameters + '.jpg'
                 if os.path.exists(filename):
                     _parameters = 'file exists'
@@ -209,7 +218,6 @@ def get_ip():
 
 PORT = 8080
 server = HTTPServer(('', PORT), RequestHandler)
-# server.socket = ssl.wrap_socket(server.socket, certfile='', server_side=True)
 ip = get_ip()
 try:
     external_ip = get('https://api.ipify.org').text
@@ -221,9 +229,6 @@ try:
 except FileExistsError:
     shutil.rmtree(SERVER_WORKING_DIR)
     os.mkdir(SERVER_WORKING_DIR)
-except FileExistsError:
-    print('Server working directory exists. Please clean up and try again')
-    exit()
 
 print('Server ready on IP ' + str(ip) + ' port ' + str(PORT))
 try:
