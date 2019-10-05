@@ -111,10 +111,12 @@ class Imutils:
 
     def add_image(self, path):
         if len(self.images) >= MAX_IMAGES:
-            raise Exception('Exceeded max images')
+            print('Exceeded max images')
+            return False
         image = cv2.imread(path)
         self.images.append(image)
         self.ready = False
+        return True
 
     def reset(self):
         self.ready = False

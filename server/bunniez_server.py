@@ -13,6 +13,11 @@ SERVER_WORKING_DIR = 'server_working'
 util_dict = dict()
 count = 0
 
+def print_error_status():
+    for key in util_dict:
+        print('ID: ' + key)
+        print('\tImages length: ' + str(len(util_dict[key].images)))
+        print('\tReady: ' + str(util_dict[key].ready))
 
 def get_new_id():
     global count
@@ -34,6 +39,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         print("Received HEAD request")
         global util_dict
         identity, request, parameters = self.get_params('PUT')
+        print('\tid: ' + identity + ', request: ' + request + ', params: ' + parameters)
         _identity, _request, _parameters = identity, request, 'ok'
         if request == 'init':
             # Allocate a new id and a directory
@@ -47,11 +53,11 @@ class RequestHandler(BaseHTTPRequestHandler):
             os.mkdir(SERVER_WORKING_DIR + '/' + _identity + '/output')
             util = iproc.Imutils()
             util_dict[_identity] = util
-            print('New id: ' + _identity)
+            print('\tNew id: ' + _identity)
         elif request == 'preprocess':
             util = util_dict[identity]
             _parameters = str(util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/'))
-            print('Preprocess,  id: ' + _identity)
+            print('\tPreprocess,  id: ' + _identity)
         elif request == 'end':
             try:
                 del(util_dict[identity])
@@ -61,13 +67,14 @@ class RequestHandler(BaseHTTPRequestHandler):
                 shutil.rmtree(SERVER_WORKING_DIR + '/' + _identity)
             except FileNotFoundError:
                 pass
-            print('End,  id: ' + _identity)
+            print('\tEnd,  id: ' + _identity)
         else:
             _parameters = "ILLEGAL_REQUEST"
         self.send_response(200)
         self.set_params(_identity, _request, _parameters)
         self.end_headers()
-        print("Processed HEAD request")
+        print("\tProcessed HEAD request")
+        print('\t_id: ' + _identity + ', _request: ' + _request + ', _params: ' + _parameters)
 
     def do_PUT(self):
         """
@@ -76,6 +83,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         print("Received PUT request")
         global util_dict
         identity, request, parameters = self.get_params('PUT')
+        print('\tid: ' + identity + ', request: ' + request + ', params: ' + parameters)
         _identity, _request, _parameters = identity, request, 'ok'
         util = util_dict[identity]
         if request == 'upload':
@@ -89,32 +97,41 @@ class RequestHandler(BaseHTTPRequestHandler):
                     file_length = int(self.headers['Content-Length'])
                     with open(filename, 'wb') as output_file:
                         output_file.write(self.rfile.read(file_length))
-                    util.add_image(filename)
-                    print('Added image, id: ' + _identity)
+                    if not util.add_image(filename):
+                        print_error_status()
+                    print('\tAdded image ' + filename + ', id: ' + _identity)
         else:
             _parameters = "ILLEGAL_REQUEST"
         self.send_response(200)
         self.set_params(_identity, _request, _parameters)
         self.end_headers()
-        print("Processed PUT request")
+        print("\tProcessed PUT request")
+        print('\t_id: ' + _identity + ', _request: ' + _request + ', _params: ' + _parameters)
 
     def do_GET(self):
+        print("Received GET request")
         global util_dict
         identity, request, parameters = self.get_params('GET')
+        print('\tid: ' + identity + ', request: ' + request + ', params: ' + parameters)
         _identity, _request, _parameters = identity, request, 'ok'
         if request == 'get_pic':
             if identity not in util_dict:
                 _parameters = 'bad ID'
+                print('\tBad ID')
             else:
                 filename = SERVER_WORKING_DIR + '/' + identity + '/output/' + parameters + '.jpg'
+                print("\tRequested: " + filename)
                 if os.path.exists(filename):
-                    f = open(filename)
+                    f = open(filename, 'rb')
                     self.send_response(200)
                     self.send_header('Content-type', 'application/octet-stream')
+                    self.send_header('Content-length', os.path.getsize(filename))
                     self.set_params(_identity, _request, _parameters)
                     self.end_headers()
                     self.wfile.write(f.read())
                     f.close()
+                    print("\tProcessed GET request")
+                    print('\t_id: ' + _identity + ', _request: ' + _request + ', _params: ' + _parameters)
                     return
                 else:
                     _parameters = 'no such file'
@@ -130,6 +147,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(f.read())
                 f.close()
+                print("\tProcessed GET request")
+                print('\t_id: ' + _identity + ', _request: ' + _request + ', _params: ' + _parameters)
                 return
             else:
                 _parameters = 'could not locate output file'
@@ -138,7 +157,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.set_params(_identity, _request, _parameters)
         self.end_headers()
-        print("Processed GET request")
+        print("\tProcessed GET request")
+        print('\t_id: ' + _identity + ', _request: ' + _request + ', _params: ' + _parameters)
 
 
 def get_ip():
