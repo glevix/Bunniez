@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Bunniez bunniez = (Bunniez) getApplicationContext();
+        bunniez.initNewClient();
         BunniezClient client = bunniez.getClient();
         mainUtils = new MainUtils(this);
         imagePaths = new ArrayList<>();
