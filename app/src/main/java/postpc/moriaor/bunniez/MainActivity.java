@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static final int HTTP_LOADER_REQUEST = 221;
     static final int EXTERNAL_STORAGE_PERMISSION_CODE = 122;
     static final int MY_CAMERA_PERMISSION_CODE = 0;
-    static final int PIC_NUM_LIMIT = 3;
+    static final int PIC_NUM_LIMIT = 1;
     private int PIC_NUM = 1;
 
     private Uri currentPhotoUri;

@@ -38,8 +38,9 @@ class ImageUtils {
         String filename = "input" + Integer.toString(index) + ".jpg";
         String dirPath = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
         File image = new File(dirPath + File.separator + filename);
-        if (!image.exists())
-            image.mkdirs();
+        if (image.exists())
+            image.delete();
+        image.createNewFile();
         if (!image.exists())
             return null;
         return image;
