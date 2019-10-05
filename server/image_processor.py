@@ -102,12 +102,14 @@ def merge(image, crops, anchors):
 
 
 class Imutils:
-    ready = False
-    output = None
-    images = [None] * 3
-    boxes = []
-    faces = []
-    base_index = 0
+
+    def __init__(self):
+        self.ready = False
+        self.output = None
+        self.images = [None] * 3
+        self.boxes = []
+        self.faces = []
+        self.base_index = 0
 
     def add_image(self, path, index):
         if len(self.images) >= MAX_IMAGES:
@@ -142,7 +144,7 @@ class Imutils:
         register(self.images, self.base_index)
         for image in self.images:
             f, b = get_faces(image)
-            # print('found ' + str(len(f)) + ' faces')
+            print('found ' + str(len(f)) + ' faces')
             self.faces.append(f)
             self.boxes.append(b)
         for i in range(len(self.images)):
