@@ -104,17 +104,17 @@ def merge(image, crops, anchors):
 class Imutils:
     ready = False
     output = None
-    images = []
+    images = [None] * 3
     boxes = []
     faces = []
     base_index = 0
 
-    def add_image(self, path):
+    def add_image(self, path, index):
         if len(self.images) >= MAX_IMAGES:
             print('Exceeded max images')
             return False
         image = cv2.imread(path)
-        self.images.append(image)
+        self.images[index] = image
         self.ready = False
         return True
 

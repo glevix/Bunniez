@@ -44,7 +44,9 @@ class BunniezClient {
     }
 
 
-    void parseBoundingBoxes(String text) {
+    void parseBoundingBoxes(String json) {
+        
+
     }
 
     String buildIndexString(int[] indexes) {

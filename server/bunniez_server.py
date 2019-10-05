@@ -4,6 +4,7 @@ import image_processor as iproc
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import cgi
 import ssl
+import json
 import os, shutil
 import socket
 from requests import get
@@ -56,7 +57,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             print('\tNew id: ' + _identity)
         elif request == 'preprocess':
             util = util_dict[identity]
-            _parameters = str(util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/'))
+            _parameters = json.dumps(util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/'))
             print('\tPreprocess,  id: ' + _identity)
         elif request == 'end':
             try:
@@ -97,7 +98,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     file_length = int(self.headers['Content-Length'])
                     with open(filename, 'wb') as output_file:
                         output_file.write(self.rfile.read(file_length))
-                    if not util.add_image(filename):
+                    if not util.add_image(filename, int(parameters)):
                         print_error_status()
                     print('\tAdded image ' + filename + ', id: ' + _identity)
         else:
@@ -143,6 +144,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 f = open(filename)
                 self.send_response(200)
                 self.send_header('Content-type', 'application/octet-stream')
+                self.send_header('Content-length', os.path.getsize(filename))
                 self.set_params(_identity, _request, _parameters)
                 self.end_headers()
                 self.wfile.write(f.read())
