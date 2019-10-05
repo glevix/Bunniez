@@ -2,6 +2,7 @@ package postpc.moriaor.bunniez;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Application;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -249,7 +250,15 @@ public class LoaderActivity extends AppCompatActivity {
 
 
     private void startDisplayResultActivity() {
-        //TODO create activity and put intent here
+        Intent displayResultIntent = new Intent(this, DisplayResultActivity.class);
+        String imagePath = ((Bunniez) getApplicationContext()).getClient().outputPath;
+        if (imagePath == null) {
+            //TODO error
+        }
+        displayResultIntent.putExtra("imagePath", imagePath);
+        if(displayResultIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(displayResultIntent);
+        }
     }
 }
 

@@ -97,6 +97,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
     private void saveImagesBitmaps() {
         for(int i = 0; i < imagePaths.size(); i++) {
+
             fullSizeImages.add(BitmapFactory.decodeFile(imagePaths.get(i)));
             thumbnails.add(ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(imagePaths.get(i)), THUMBSIZE, THUMBSIZE));
         }

@@ -1,5 +1,7 @@
 package postpc.moriaor.bunniez;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +42,7 @@ class BunniezClient {
     String id;
     OkHttpClient client;
     ArrayList<ArrayList<BoundingBox>> boxes;
+    String outputPath;
     boolean error;
 
 
@@ -314,6 +317,7 @@ class BunniezClient {
                             fileOutputStream.write(data);
                             fileOutputStream.flush();
                             fileOutputStream.close();
+                            outputPath = out.getAbsolutePath();
                         }
                     } catch (IOException | NullPointerException e) {
                         error = true;
@@ -327,10 +331,8 @@ class BunniezClient {
 
     /**
      * Send HEAD "end" request
-     *
-     * @param runnable To run on completion. Should check this.error
      */
-    void do_end(final Runnable runnable) {
+    void do_end() {
         Request request = new Request.Builder()
                 .head()
                 .header("request", "end")
@@ -343,14 +345,12 @@ class BunniezClient {
         Callback callback = new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                error = true;
-                runnable.run();
+                Log.e("bunniez client", "failed to do_end");
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                error = !response.header("params", "").equals("ok");
-                runnable.run();
+                Log.i("bunniez client", "do_end success");
             }
         };
         call.enqueue(callback);
