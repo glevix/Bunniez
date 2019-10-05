@@ -8,12 +8,30 @@ import json
 import os, shutil
 import socket
 from requests import get
+from distutils.dir_util import copy_tree
 import numpy as np
+
+DEBUG = True
 
 SERVER_WORKING_DIR = 'server_working'
 
 util_dict = dict()
 count = 0
+
+def inject(sourcePath, targetPath):
+    # First delete all files in target path
+    for the_file in os.listdir(targetPath):
+        file_path = os.path.join(targetPath, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(e)
+    # Now copy all of sourcePath into targetPath
+    copy_tree(sourcePath, targetPath)
+
 
 def print_error_status():
     for key in util_dict:
@@ -62,6 +80,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         elif request == 'preprocess':
             if identity in util_dict:
                 util = util_dict[identity]
+                if DEBUG:
+                    inject('test/', SERVER_WORKING_DIR + '/' + identity + '/input/')
                 b = util.preprocess(int(parameters), SERVER_WORKING_DIR + '/' + identity + '/output/')
                 print('\tFound boxes: ' + str(b))
                 # _parameters = json.dumps(b, default=convert)
