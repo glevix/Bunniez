@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 
@@ -20,6 +21,8 @@ public class LoaderActivity extends AppCompatActivity {
     String displayText;
     ArrayList<String> imagePaths;
     int baseIndex;
+    boolean[] didUpload;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +32,8 @@ public class LoaderActivity extends AppCompatActivity {
 
         Bunniez bunniez = (Bunniez) getApplicationContext();
         client = bunniez.getClient();
+        didUpload = new boolean[3];
+
 
 
         TextView loadingDisplay = findViewById(R.id.display_text);
@@ -97,15 +102,9 @@ public class LoaderActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            startSelectFacesActivity();
+                            returnWResultWithDelay(RESULT_CANCELED, "Request Failed with Client Error");
                         }
                     });
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            returnWResultWithDelay(RESULT_CANCELED, "Request Failed with Client Error");
-//                        }
-//                    });
                 } else {
                     Log.i(Bunniez.TAG, requestName+ " request completed successfully");
                     runOnUiThread(new Runnable() {
@@ -115,6 +114,29 @@ public class LoaderActivity extends AppCompatActivity {
                         }
                     });
 
+                }
+            }
+        };
+    }
+
+    private Runnable composeUploadRunnable(final int index){
+        return new Runnable() {
+            @Override
+            public void run() {
+                if(client.error) {
+                    LoaderActivity.this.didUpload[index] = false;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            returnWResultWithDelay(RESULT_CANCELED, "Request Failed with Client Error");
+                        }
+                    });
+
+                }
+                boolean[] arr = LoaderActivity.this.didUpload;
+                arr[index] = true;
+                if(arr[0] && arr[1] && arr[2]) {
+                    handlePreprocess();
                 }
             }
         };
@@ -138,7 +160,7 @@ public class LoaderActivity extends AppCompatActivity {
 
     private void handleUpload() {
         for (int i = 0; i < imagePaths.size(); i++) {
-            client.do_upload(composeRunnable(RequestTypes.UPLOAD), imagePaths.get(i), i);
+            client.do_upload(composeUploadRunnable(i), imagePaths.get(i), i);
         }
 
     }
