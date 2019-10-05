@@ -93,7 +93,7 @@ class BunniezClient {
         boxes = boxListList;
     }
 
-    String buildIndexString(int[] indexes) {
+    String buildIndexString(ArrayList<Integer> indexes) {
         return null;
     }
 
@@ -268,7 +268,7 @@ class BunniezClient {
      * @param indexes array specifying from which image to take each face
      * @param out File to write output image to
      */
-    void do_process(final Runnable runnable, int[] indexes, final File out) {
+    void do_process(final Runnable runnable, ArrayList<Integer> indexes, final File out) {
         Request request = new Request.Builder()
                 .get()
                 .header("request", "process")

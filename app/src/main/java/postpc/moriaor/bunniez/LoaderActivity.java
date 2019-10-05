@@ -70,7 +70,7 @@ public class LoaderActivity extends AppCompatActivity {
                     this.handleGetPic();
                     break;
                 case RequestTypes.PROCESS:
-//                    this.handleProcess();
+                    this.handleProcess(chosenIndices);
                     break;
                 default:
                     Log.d(Bunniez.TAG, "Unknown Request Type");
@@ -201,7 +201,7 @@ public class LoaderActivity extends AppCompatActivity {
     }
 
 
-    private void handleProcess(int[] indexes) {
+    private void handleProcess(ArrayList<Integer> indexes) {
         File output = null;
         try {
             output = ImageUtils.createImageFile(this, "output");
