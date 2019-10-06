@@ -3,6 +3,7 @@ package postpc.moriaor.bunniez;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import android.Manifest;
@@ -10,7 +11,6 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -21,7 +21,6 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static final int HTTP_LOADER_REQUEST = 221;
     static final int EXTERNAL_STORAGE_PERMISSION_CODE = 122;
     static final int MY_CAMERA_PERMISSION_CODE = 0;
+    static final int ALL_PERMISSION_CODE = 47;
     static final int PIC_NUM_LIMIT = 3;
     private int PIC_NUM = 1;
 
@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         Bunniez bunniez = (Bunniez) getApplicationContext();
         bunniez.initNewClient();
-        BunniezClient client = bunniez.getClient();
         mainUtils = new MainUtils(this);
         imagePaths = new ArrayList<>();
         Button cameraButton = findViewById(R.id.camera_button);
@@ -92,13 +91,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void dispatchTakePictureIntent() {
-        this.requestStoragePermission();
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-        {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
+    private boolean checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            return false;
         }
-        else {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        return true;
+    }
+
+    private void doRequestPermissions() {
+        ArrayList<String> required = new ArrayList<>();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            required.add(Manifest.permission.CAMERA);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            required.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            required.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+
+        String[] requests = new String[required.size()];
+        for (int i = 0; i < required.size(); i++) {
+            requests[i] = required.get(i);
+        }
+        ActivityCompat.requestPermissions(this,
+                requests,
+                ALL_PERMISSION_CODE);
+
+    }
+
+    private void dispatchTakePictureIntent() {
+        if (checkPermissions()) {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                 File photoFile = null;
@@ -117,8 +152,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         grantUriPermission(getPackageName(), photoURI, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                         currentPhotoUri = Uri.parse(photoFile.getAbsolutePath());
 
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
 
                     } catch (Exception e) {
                         Log.d(Bunniez.TAG, "oh no");
@@ -127,8 +162,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 }
             }
+        } else {
+            doRequestPermissions();
         }
-
     }
 
 
@@ -205,17 +241,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         // TODO: error getting file from gallery
                     }
                     imageFiles.add(f);
-
-//                    mArrayUri.add(uri);
-//                    // Get the cursor
-//                    Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
-//                    // Move to first row
-//                    cursor.moveToFirst();
-//
-//                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-//                    imageEncoded = cursor.getString(columnIndex);
-//                    imagesEncodedList.add(imageEncoded);
-//                    cursor.close();
                 }
             }
         }
@@ -278,20 +303,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-    private void requestStoragePermission() {
-        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, EXTERNAL_STORAGE_PERMISSION_CODE);
-            }
-        }
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == MY_CAMERA_PERMISSION_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
-                dispatchTakePictureIntent();
+//                dispatchTakePictureIntent();
             } else {
                 Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
             }
@@ -299,10 +317,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         else if (requestCode == EXTERNAL_STORAGE_PERMISSION_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "storage permission granted", Toast.LENGTH_LONG).show();
-                dispatchTakePictureIntent();
             } else {
                 Toast.makeText(this, "storage permission denied", Toast.LENGTH_LONG).show();
             }
+        }
+        else if (requestCode == ALL_PERMISSION_CODE) {
+//                Toast.makeText(this, "Permissions requested", Toast.LENGTH_LONG).show();
+//                dispatchTakePictureIntent();
+
         }
     }
     }

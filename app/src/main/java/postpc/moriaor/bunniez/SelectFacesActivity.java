@@ -190,8 +190,9 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                     Button box = boxesButtons.get(i);
                     if(chosenImagesForBoxes.get(i) == selectedImageIndex) {
                         box.setBackgroundResource(R.drawable.bounding_box);
+                    } else {
+                        box.setBackgroundResource(R.drawable.image_background);
                     }
-                    box.setBackgroundResource(R.drawable.image_background);
 
                     box.setX(x);
                     box.setY(y);

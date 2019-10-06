@@ -185,7 +185,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 filename = SERVER_WORKING_DIR + '/' + identity + '/output/final.jpg'
                 util.process([int(i) for i in parameters.split(',')], filename)
                 if os.path.exists(filename):
-                    f = open(filename)
+                    f = open(filename, 'rb')
                     self.send_response(200)
                     self.send_header('Content-type', 'application/octet-stream')
                     self.send_header('Content-length', os.path.getsize(filename))
