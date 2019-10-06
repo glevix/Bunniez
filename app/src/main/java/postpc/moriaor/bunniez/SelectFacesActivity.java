@@ -57,7 +57,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         setContentView(R.layout.activity_select_faces);
         imagePaths = getIntent().getStringArrayListExtra("imagePaths");
         initInstances();
-        setOnClickListenters();
+        setOnClickListeners();
         try {
             initLayoutListener();
             saveImagesBitmaps();
@@ -116,7 +116,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
-    private void setOnClickListenters() {
+    private void setOnClickListeners() {
         rightArrow.setOnClickListener(this);
         leftArrow.setOnClickListener(this);
         rightThumbnail.setOnClickListener(this);
