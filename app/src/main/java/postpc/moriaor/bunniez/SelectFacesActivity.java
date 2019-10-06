@@ -19,7 +19,7 @@ import java.util.ArrayList;
 
 public class SelectFacesActivity extends AppCompatActivity implements View.OnClickListener {
 
-    final int THUMBSIZE = 264;
+    final int THUMBSIZE = 200;
 
     static final String CHOSEN_IMAGES_KEY = "chosenImages";
 
