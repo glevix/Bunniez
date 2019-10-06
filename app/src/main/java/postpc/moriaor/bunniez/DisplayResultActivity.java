@@ -15,6 +15,8 @@ import java.io.File;
 
 public class DisplayResultActivity extends AppCompatActivity {
 
+    static final String IMAGE_PATH_KEY = "imagePath";
+
     String imagePath;
 
     Button newButton, saveButton;
@@ -23,10 +25,8 @@ public class DisplayResultActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        imagePath = getIntent().getStringExtra(IMAGE_PATH_KEY);
         setContentView(R.layout.activity_display_result);
-
-        imagePath = getIntent().getStringExtra("imagePath");
-
         newButton = findViewById(R.id.newButton);
         saveButton = findViewById(R.id.saveButton);
         imageView = findViewById(R.id.outputImage);
@@ -64,6 +64,22 @@ public class DisplayResultActivity extends AppCompatActivity {
         });
 
     }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        imagePath = savedInstanceState.getString(IMAGE_PATH_KEY);
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(IMAGE_PATH_KEY, imagePath);
+
+        // call superclass to save any view hierarchy
+        super.onSaveInstanceState(outState);
+    }
+
 
 
 }

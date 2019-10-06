@@ -51,6 +51,12 @@ class BunniezClient {
         this.client = new OkHttpClient();
     }
 
+    BunniezClient(String url, String id) {
+        this.endpoint = url;
+        this.client = new OkHttpClient();
+        this.id = id;
+    }
+
 
     void parseBoundingBoxes(String str) {
         str = str.replaceAll("\\s+",""); // remove all whitespace

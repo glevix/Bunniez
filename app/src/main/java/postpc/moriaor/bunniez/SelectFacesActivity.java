@@ -16,13 +16,15 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class SelectFacesActivity extends AppCompatActivity implements View.OnClickListener {
 
     final int THUMBSIZE = 264;
 
+    static final String CHOSEN_IMAGES_KEY = "chosenImages";
 
+
+    ArrayList<ImageView> thumbnailViews;
     private ImageView rightThumbnail;
     private ImageView leftThumbnail;
     private ImageView middleThumbnail;
@@ -39,7 +41,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     ArrayList<Integer> chosenImagesForBoxes;
     ArrayList<Button> boxesButtons;
 
-    ViewTreeObserver.OnGlobalLayoutListener listener;
 
     Bitmap selected;
     int selectedImageIndex;
@@ -56,7 +57,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_faces);
-        imagePaths = getIntent().getStringArrayListExtra("imagePaths");
+        imagePaths = getIntent().getStringArrayListExtra(Bunniez.IMAGE_PATHS_KEY);
         initInstances();
         initLayoutListener();
         setOnClickListeners();
@@ -69,9 +70,17 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        imagePaths = savedInstanceState.getStringArrayList(Bunniez.IMAGE_PATHS_KEY);
+        chosenImagesForBoxes = savedInstanceState.getIntegerArrayList(CHOSEN_IMAGES_KEY);
+
+    }
+
     private void initLayoutListener() {
         ViewTreeObserver vto = selectedImage.getViewTreeObserver();
-        listener = new ViewTreeObserver.OnGlobalLayoutListener(){
+        final ViewTreeObserver.OnGlobalLayoutListener listener = new ViewTreeObserver.OnGlobalLayoutListener(){
             @Override public void onGlobalLayout(){
                 int [] xy = new int[2];
                 selectedImage.getLocationOnScreen(xy);
@@ -82,7 +91,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                 if(didInitBoxes) {
                     runOnUiThread(drawBoundingBoxes());
                 }
-                selectedImage.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
+                selectedImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         };
         vto.addOnGlobalLayoutListener(listener);
@@ -95,23 +104,34 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         thumbnails = new ArrayList<>();
         fullSizeImages = new ArrayList<>();
         currentBoxesList = client.boxes.get(selectedImageIndex);
-        chosenImagesForBoxes = new ArrayList<Integer>();
-//        chosenBoxesIndices = new ArrayList<>(Arrays.asList(0,0,0));
-
 
         rightArrow = findViewById(R.id.right_arrow);
         leftArrow = findViewById(R.id.left_arrow);
         selectedImage = findViewById(R.id.selectedImage);
-        rightThumbnail = findViewById(R.id.rightImage);
-        leftThumbnail = findViewById(R.id.leftImage);
-        middleThumbnail = findViewById(R.id.middleImage);
         doneButton = findViewById(R.id.done_button);
+
+        initThumbnailViews();
         initBoxesButtons();
 
 
     }
 
+    private void initThumbnailViews() {
+        thumbnailViews = new ArrayList<>();
+        rightThumbnail = findViewById(R.id.rightImage);
+        leftThumbnail = findViewById(R.id.leftImage);
+        middleThumbnail = findViewById(R.id.middleImage);
+        for(int i = 0; i< imagePaths.size(); i++) {
+            ImageView thumb = mapIndexToImage(i);
+            thumb.setOnClickListener(this);
+            thumb.setClipToOutline(true);
+            thumbnailViews.add(thumb);
+
+        }
+    }
+
     private void initBoxesButtons() {
+        chosenImagesForBoxes = new ArrayList<>();
         boxesButtons = new ArrayList<>();
         for(int i = 0; i< currentBoxesList.size(); i++) {
             chosenImagesForBoxes.add(-1);
@@ -127,17 +147,9 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     private void setOnClickListeners() {
         rightArrow.setOnClickListener(this);
         leftArrow.setOnClickListener(this);
-        rightThumbnail.setOnClickListener(this);
-        leftThumbnail.setOnClickListener(this);
-        middleThumbnail.setOnClickListener(this);
         doneButton.setOnClickListener(this);
 
-
         selectedImage.setClipToOutline(true);
-        rightThumbnail.setClipToOutline(true);
-        leftThumbnail.setClipToOutline(true);
-        middleThumbnail.setClipToOutline(true);
-
     }
 
 
@@ -154,7 +166,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     private void loadImages() {
         selectedImage.setImageBitmap(selected);
         for(int i = 0; i < imagePaths.size(); i++) {
-            ImageView thumbnail = mapIndexToImage(i);
+            ImageView thumbnail = thumbnailViews.get(i);
             if(thumbnail != null) {
                 thumbnail.setImageBitmap(thumbnails.get(i));
             }
@@ -314,5 +326,14 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
             chosenImagesForBoxes.set(boxIndex, selectedImageIndex);
         }
      }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putStringArrayList(Bunniez.IMAGE_PATHS_KEY, imagePaths);
+        outState.putIntegerArrayList(CHOSEN_IMAGES_KEY, chosenImagesForBoxes);
+
+        // call superclass to save any view hierarchy
+        super.onSaveInstanceState(outState);
+    }
 
 }

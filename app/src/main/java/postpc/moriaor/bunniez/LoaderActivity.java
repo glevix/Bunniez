@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -17,7 +18,13 @@ import java.util.Arrays;
 
 
 public class LoaderActivity extends AppCompatActivity {
+    static final String REQUEST_KEY = "request";
+    static final String DISPLAY_KEY = "display";
+    static final String DID_UPLOAD_KEY = "didUpload";
+    static final String BASE_INDEX_KEY = "baseIndex";
+    static final String CHOSEN_KEY = "indices";
 
+    Bunniez bunniez;
     BunniezClient client;
     String request;
     String displayText;
@@ -30,14 +37,11 @@ public class LoaderActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_loader);
-        this.initInstances();
-
         Bunniez bunniez = (Bunniez) getApplicationContext();
+        imagePaths = new ArrayList<>();
+        this.initInstances();
+        setContentView(R.layout.activity_loader);
         client = bunniez.getClient();
-        didUpload = new boolean[3];
-
-
 
         TextView loadingDisplay = findViewById(R.id.display_text);
         loadingDisplay.setText(displayText);
@@ -48,13 +52,34 @@ public class LoaderActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        imagePaths = savedInstanceState.getStringArrayList(Bunniez.IMAGE_PATHS_KEY);
+        String clientId = savedInstanceState.getString(Bunniez.CLIENT_ID_KET);
+        request = savedInstanceState.getString(REQUEST_KEY);
+        didUpload = savedInstanceState.getBooleanArray(DID_UPLOAD_KEY);
+        baseIndex = savedInstanceState.getInt(BASE_INDEX_KEY);
+        chosenIndices = savedInstanceState.getIntegerArrayList(CHOSEN_KEY);
+        displayText = savedInstanceState.getString(DISPLAY_KEY);
+        if(clientId != null) {
+            bunniez.reinitClient(clientId);
+        } else {
+            bunniez.initNewClient();
+        }
+    }
+
     private void initInstances() {
         Intent intentCreatedMe = getIntent();
-        displayText = intentCreatedMe.getStringExtra("display");
-        request = intentCreatedMe.getStringExtra("request");
-        imagePaths = intentCreatedMe.getStringArrayListExtra("imagePaths");
-        baseIndex = intentCreatedMe.getIntExtra("baseIndex", 0);
-        chosenIndices = intentCreatedMe.getIntegerArrayListExtra("indices");
+        if(intentCreatedMe != null) {
+            displayText = intentCreatedMe.getStringExtra(DISPLAY_KEY);
+            request = intentCreatedMe.getStringExtra(REQUEST_KEY);
+            imagePaths = intentCreatedMe.getStringArrayListExtra(Bunniez.IMAGE_PATHS_KEY);
+            baseIndex = intentCreatedMe.getIntExtra(BASE_INDEX_KEY, 0);
+            chosenIndices = intentCreatedMe.getIntegerArrayListExtra(CHOSEN_KEY);
+            didUpload = new boolean[3];
+        }
+
 
     }
 
@@ -259,6 +284,18 @@ public class LoaderActivity extends AppCompatActivity {
             finish();
             startActivity(displayResultIntent);
         }
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putStringArrayList(Bunniez.IMAGE_PATHS_KEY, imagePaths);
+        outState.putString(Bunniez.CLIENT_ID_KET, client.id);
+        outState.putString(REQUEST_KEY, request);
+        outState.putBooleanArray(DID_UPLOAD_KEY, didUpload);
+        outState.putInt(BASE_INDEX_KEY, baseIndex);
+         outState.putIntegerArrayList(CHOSEN_KEY, chosenIndices);
+        super.onSaveInstanceState(outState);
     }
 }
 

@@ -6,6 +6,9 @@ import android.util.Log;
 public class Bunniez extends Application {
     static final String SERVER_URL = "http://192.168.43.154:8080";
     static final String TAG = "bunbun";
+    static final String IMAGE_PATHS_KEY = "imagePaths";
+    static final String CLIENT_ID_KET = "clientID";
+
 
     BunniezClient client;
     boolean didInit;
@@ -37,6 +40,10 @@ public class Bunniez extends Application {
             didInit = true;
             hasSetupConnection = false;
         }
+    }
+
+    public void reinitClient(String id) {
+        client = new BunniezClient(SERVER_URL, id);
     }
 
     public BunniezClient getClient() {
