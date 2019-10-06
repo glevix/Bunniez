@@ -49,6 +49,7 @@
         app:layout_constraintStart_toEndOf="@id/left_arrow"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
         android:adjustViewBounds="true"
+        android:layout_marginStart="15dp"
         android:background="@drawable/image_background"
         app:srcCompat="@drawable/background_gradient" />
 
@@ -76,7 +77,9 @@
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
         android:background="@drawable/image_background"
         android:adjustViewBounds="true"
-        app:srcCompat="@drawable/background_gradient" />
+         android:layout_marginEnd="15dp"
+
+         app:srcCompat="@drawable/background_gradient" />
 
     <Button
         android:id="@+id/left_arrow"
@@ -84,10 +87,8 @@
         android:layout_height="60dp"
         android:scaleX="-1"
         app:layout_constraintBottom_toTopOf="@+id/done_button"
-        app:layout_constraintEnd_toStartOf="@id/leftImage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
-        android:layout_marginEnd="15dp"
         android:background="@drawable/arrow"/>
 
     <Button
@@ -97,8 +98,6 @@
         app:layout_constraintBottom_toTopOf="@+id/done_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
-        android:layout_marginStart="15dp"
-        android:layout_marginEnd="10dp"
         android:background="@drawable/arrow"/>
 
     <Button

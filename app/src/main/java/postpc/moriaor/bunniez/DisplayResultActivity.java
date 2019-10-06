@@ -19,7 +19,7 @@ public class DisplayResultActivity extends AppCompatActivity {
 
     String imagePath;
 
-    Button newButton, saveButton;
+    Button newButton, saveButton, editButton;
     ImageView imageView;
 
     @Override
@@ -29,6 +29,7 @@ public class DisplayResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_display_result);
         newButton = findViewById(R.id.newButton);
         saveButton = findViewById(R.id.saveButton);
+        editButton = findViewById(R.id.editButton);
         imageView = findViewById(R.id.outputImage);
         File imgFile = new  File(imagePath);
 
@@ -60,6 +61,13 @@ public class DisplayResultActivity extends AppCompatActivity {
                 File f = new File(imagePath);
                 ImageUtils.saveToGallery(getApplicationContext(), f);
                 //TODO toast "image saved to gallery"
+            }
+        });
+
+        editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
 
