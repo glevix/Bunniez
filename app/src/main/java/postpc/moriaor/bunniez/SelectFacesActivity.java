@@ -187,6 +187,10 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                     int h = translatedBox.h;
                     int w = translatedBox.w;
                     Button box = boxesButtons.get(i);
+                    if(true) {
+                        box.setBackgroundResource(R.drawable.bounding_box);
+                    }
+                    box.setBackgroundResource(R.drawable.image_background);
 
                     box.setX(x);
                     box.setY(y);
@@ -207,7 +211,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onClick(View v) {
-        ImageView prev = mapIndexToImage(selectedImageIndex);
         switch (v.getId()) {
             case R.id.right_arrow:
                 onRightArrowPress();
@@ -226,7 +229,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
             case 0:
             case 1:
             case 2:
-                onBoundingBoxPress(v, prev);
+                onBoundingBoxPress(v);
                 break;
         }
         handleIndexChange();
@@ -292,12 +295,12 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
 
 
-     private void onBoundingBoxPress(View v, View prev) {
-         prev.setBackgroundResource(R.drawable.image_background);
+     private void onBoundingBoxPress(View v) {
          int boxIndex = boxesButtons.indexOf(v);
         if(boxIndex != -1 && boxIndex < chosenImagesForBoxes.size()) {
             v.setBackgroundResource(R.drawable.bounding_box);
             chosenImagesForBoxes.set(boxIndex, selectedImageIndex);
+            chosenBoxesIndices.set(selectedImageIndex, boxIndex);
         }
      }
 
