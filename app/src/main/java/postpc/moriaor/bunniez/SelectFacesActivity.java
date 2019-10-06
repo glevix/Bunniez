@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +37,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     ArrayList<Bitmap> thumbnails;
     ArrayList<Bitmap> fullSizeImages;
     ArrayList<Integer> chosenImagesForBoxes;
-//    ArrayList<Integer> chosenBoxesIndices;
     ArrayList<Button> boxesButtons;
 
     ViewTreeObserver.OnGlobalLayoutListener listener;
@@ -114,7 +114,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     private void initBoxesButtons() {
         boxesButtons = new ArrayList<>();
         for(int i = 0; i< currentBoxesList.size(); i++) {
-            chosenImagesForBoxes.add(0);
+            chosenImagesForBoxes.add(-1);
             Button box = new Button(this);
             box.setClickable(true);
             box.setOnClickListener(this);
@@ -193,7 +193,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                     } else {
                         box.setBackgroundResource(R.drawable.image_background);
                     }
-
                     box.setX(x);
                     box.setY(y);
                     box.setHeight(h);
@@ -284,7 +283,18 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         selectedImageIndex = getThumbnailIndex(thumbnail);
      }
 
+     private boolean validateSelection() {
+        for(int i = 0; i < chosenImagesForBoxes.size(); i++) {
+            if(chosenImagesForBoxes.get(i) == -1) {
+                Toast.makeText(this, "Please select all faces", Toast.LENGTH_LONG).show();
+                return false;
+            }
+        }
+        return true;
+     }
+
      private void onDone() {
+        if(!validateSelection()) return;
          Intent loaderIntent = new Intent(this, LoaderActivity.class);
          loaderIntent.putExtra("display", getString(R.string.loader_prepare));
          loaderIntent.putExtra("request", RequestTypes.PROCESS);
@@ -302,7 +312,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         if(boxIndex != -1 && boxIndex < chosenImagesForBoxes.size()) {
             v.setBackgroundResource(R.drawable.bounding_box);
             chosenImagesForBoxes.set(boxIndex, selectedImageIndex);
-//            chosenBoxesIndices.set(selectedImageIndex, boxIndex);
         }
      }
 

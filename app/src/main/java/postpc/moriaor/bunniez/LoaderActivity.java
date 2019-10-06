@@ -131,12 +131,12 @@ public class LoaderActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        finish();
                         startSelectFacesActivity();
                     }
                 });
             }
         };
-//        runWithDelay(runnable, 3000);
         runnable.run();
     }
 
@@ -192,6 +192,7 @@ public class LoaderActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            finish();
                             startDisplayResultActivity();
                         }
                     });
@@ -255,6 +256,7 @@ public class LoaderActivity extends AppCompatActivity {
         }
         displayResultIntent.putExtra("imagePath", imagePath);
         if(displayResultIntent.resolveActivity(getPackageManager()) != null) {
+            finish();
             startActivity(displayResultIntent);
         }
     }

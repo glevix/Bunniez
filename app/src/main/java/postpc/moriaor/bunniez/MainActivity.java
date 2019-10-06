@@ -17,6 +17,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int PIC_NUM = 1;
 
     private Uri currentPhotoUri;
-
+    private String title;
     private ArrayList<String> imagePaths;
     MainUtils mainUtils;
 
@@ -68,10 +69,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Bunniez bunniez = (Bunniez) getApplicationContext();
         bunniez.initNewClient();
         mainUtils = new MainUtils(this);
         imagePaths = new ArrayList<>();
+        TextView titleView = findViewById(R.id.welcome_title);
+        TextView subtitleView = findViewById(R.id.lets_start);
+        Intent createdMe = getIntent();
+        if(createdMe != null){
+            title = createdMe.getStringExtra("title");
+            if(title != null) {
+                titleView.setText(title);
+                subtitleView.setVisibility(View.INVISIBLE);
+            }
+        }
         Button cameraButton = findViewById(R.id.camera_button);
         Button galleryButton = findViewById(R.id.gallery_button);
         cameraButton.setOnClickListener(this);

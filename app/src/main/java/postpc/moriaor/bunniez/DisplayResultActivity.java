@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -29,12 +30,12 @@ public class DisplayResultActivity extends AppCompatActivity {
         newButton = findViewById(R.id.newButton);
         saveButton = findViewById(R.id.saveButton);
         imageView = findViewById(R.id.outputImage);
-
         File imgFile = new  File(imagePath);
 
         if(imgFile.exists()){
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             imageView.setImageBitmap(myBitmap);
+            imageView.setClipToOutline(true);
         } // TODO else error
 
 
@@ -55,12 +56,14 @@ public class DisplayResultActivity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast.makeText(DisplayResultActivity.this, "Image was saved to your gallery", Toast.LENGTH_LONG).show();
                 File f = new File(imagePath);
                 ImageUtils.saveToGallery(getApplicationContext(), f);
                 //TODO toast "image saved to gallery"
             }
         });
 
-
     }
+
+
 }
