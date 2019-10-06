@@ -257,7 +257,7 @@ class BunniezClient {
                         }
                         in.close();
                         if (offset != contentLength) {
-                            Log.e("BunniezClient", "offset != contentLength");
+                            Log.e("BunniezClient", "offset not equal to contentLength");
                             error = true;
                         } else {
                             FileOutputStream fileOutputStream = new FileOutputStream(out);

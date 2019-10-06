@@ -77,7 +77,8 @@ def overlay(image, crop, anchor):
 
     :param image: Base image
     :param crop: Image to be stitched
-    :param anchor: (x,y,w,h) region in the base image to which to perform the stitching
+    :param anchor: (x,y,w,h) region in the base image to which
+        to perform the stitching
     :return: Resulting image
     """
     background = image.copy()
