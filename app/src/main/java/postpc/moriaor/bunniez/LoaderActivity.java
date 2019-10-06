@@ -237,8 +237,6 @@ public class LoaderActivity extends AppCompatActivity {
     }
 
 
-
-
     private void startSelectFacesActivity() {
         Intent selectFacesIntent = new Intent(this, SelectFacesActivity.class);
         selectFacesIntent.putStringArrayListExtra("imagePaths", imagePaths);
@@ -251,7 +249,7 @@ public class LoaderActivity extends AppCompatActivity {
 
     private void startDisplayResultActivity() {
         Intent displayResultIntent = new Intent(this, DisplayResultActivity.class);
-        String imagePath = ((Bunniez) getApplicationContext()).getClient().outputPath;
+        String imagePath = client.outputPath;
         if (imagePath == null) {
             //TODO error
         }
