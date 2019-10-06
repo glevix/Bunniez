@@ -66,7 +66,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
             loadImages();
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e(Bunniez.TAG, "Error in SelectFaces --> onCreate");
+            Log.d(Bunniez.TAG, "Error in SelectFaces --> onCreate");
         }
     }
 
@@ -298,7 +298,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
      private boolean validateSelection() {
         for(int i = 0; i < chosenImagesForBoxes.size(); i++) {
             if(chosenImagesForBoxes.get(i) == -1) {
-                Toast.makeText(this, "Please select all faces", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.select_all_toast), Toast.LENGTH_LONG).show();
                 return false;
             }
         }
@@ -308,10 +308,10 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
      private void onDone() {
         if(!validateSelection()) return;
          Intent loaderIntent = new Intent(this, LoaderActivity.class);
-         loaderIntent.putExtra("display", getString(R.string.loader_prepare));
-         loaderIntent.putExtra("request", RequestTypes.PROCESS);
-         loaderIntent.putStringArrayListExtra("imagePaths", imagePaths);
-         loaderIntent.putIntegerArrayListExtra("indices", chosenImagesForBoxes);
+         loaderIntent.putExtra(LoaderActivity.DISPLAY_KEY, getString(R.string.loader_prepare));
+         loaderIntent.putExtra(LoaderActivity.REQUEST_KEY, RequestTypes.PROCESS);
+         loaderIntent.putStringArrayListExtra(Bunniez.IMAGE_PATHS_KEY, imagePaths);
+         loaderIntent.putIntegerArrayListExtra(LoaderActivity.CHOSEN_KEY, chosenImagesForBoxes);
          if(loaderIntent.resolveActivity(getPackageManager()) != null) {
              startActivity(loaderIntent);
          }
@@ -332,7 +332,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         outState.putStringArrayList(Bunniez.IMAGE_PATHS_KEY, imagePaths);
         outState.putIntegerArrayList(CHOSEN_IMAGES_KEY, chosenImagesForBoxes);
 
-        // call superclass to save any view hierarchy
         super.onSaveInstanceState(outState);
     }
 

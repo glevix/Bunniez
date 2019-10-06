@@ -47,7 +47,7 @@ public class DisplayResultActivity extends AppCompatActivity {
                 app.getClient().do_end();
                 app.initNewClient();
                 Intent reset = new Intent(getApplicationContext(), MainActivity.class);
-                reset.putExtra("title", "What would you like to do next?");
+                reset.putExtra(MainActivity.TITLE_KEY, getString(R.string.restart_title));
                 if(reset.resolveActivity(getPackageManager()) != null) {
                     startActivity(reset);
                 }
@@ -57,7 +57,7 @@ public class DisplayResultActivity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(DisplayResultActivity.this, "Image was saved to your gallery", Toast.LENGTH_LONG).show();
+                Toast.makeText(DisplayResultActivity.this, getString(R.string.save_text), Toast.LENGTH_LONG).show();
                 File f = new File(imagePath);
                 ImageUtils.saveToGallery(getApplicationContext(), f);
                 //TODO toast "image saved to gallery"
