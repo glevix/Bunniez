@@ -36,7 +36,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     ArrayList<Bitmap> thumbnails;
     ArrayList<Bitmap> fullSizeImages;
     ArrayList<Integer> chosenImagesForBoxes;
-    ArrayList<Integer> chosenBoxesIndices;
+//    ArrayList<Integer> chosenBoxesIndices;
     ArrayList<Button> boxesButtons;
 
     ViewTreeObserver.OnGlobalLayoutListener listener;
@@ -95,8 +95,8 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         thumbnails = new ArrayList<>();
         fullSizeImages = new ArrayList<>();
         currentBoxesList = client.boxes.get(selectedImageIndex);
-        chosenImagesForBoxes = new ArrayList<>(Arrays.asList(0, 0));
-        chosenBoxesIndices = new ArrayList<>(Arrays.asList(0,0,0));
+        chosenImagesForBoxes = new ArrayList<Integer>();
+//        chosenBoxesIndices = new ArrayList<>(Arrays.asList(0,0,0));
 
 
         rightArrow = findViewById(R.id.right_arrow);
@@ -114,6 +114,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     private void initBoxesButtons() {
         boxesButtons = new ArrayList<>();
         for(int i = 0; i< currentBoxesList.size(); i++) {
+            chosenImagesForBoxes.add(0);
             Button box = new Button(this);
             box.setClickable(true);
             box.setOnClickListener(this);
@@ -187,7 +188,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                     int h = translatedBox.h;
                     int w = translatedBox.w;
                     Button box = boxesButtons.get(i);
-                    if(true) {
+                    if(chosenImagesForBoxes.get(i) == selectedImageIndex) {
                         box.setBackgroundResource(R.drawable.bounding_box);
                     }
                     box.setBackgroundResource(R.drawable.image_background);
@@ -300,7 +301,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         if(boxIndex != -1 && boxIndex < chosenImagesForBoxes.size()) {
             v.setBackgroundResource(R.drawable.bounding_box);
             chosenImagesForBoxes.set(boxIndex, selectedImageIndex);
-            chosenBoxesIndices.set(selectedImageIndex, boxIndex);
+//            chosenBoxesIndices.set(selectedImageIndex, boxIndex);
         }
      }
 
