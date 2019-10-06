@@ -6,8 +6,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.graphics.RectF;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,7 +14,6 @@ import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class SelectFacesActivity extends AppCompatActivity implements View.OnClickListener {
@@ -37,7 +34,8 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     ArrayList<String> imagePaths;
     ArrayList<Bitmap> thumbnails;
     ArrayList<Bitmap> fullSizeImages;
-    ArrayList<Integer> chosenBoxes;
+    ArrayList<Integer> chosenImagesForBoxes;
+    ArrayList<Integer> chosenBoxesIndices;
     ArrayList<Button> boxesButtons;
 
     ViewTreeObserver.OnGlobalLayoutListener listener;
@@ -47,37 +45,34 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
     ArrayList<BoundingBox> currentBoxesList;
 
-    int xOffset;
-    int yOffset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_faces);
+        imagePaths = getIntent().getStringArrayListExtra("imagePaths");
         initInstances();
         setOnClickListenters();
-        imagePaths = getIntent().getStringArrayListExtra("imagePaths");
-
         try {
+            initLayoutListener();
             saveImagesBitmaps();
             loadImages();
-            ViewTreeObserver vto = selectedImage.getViewTreeObserver();
-            listener = new ViewTreeObserver.OnGlobalLayoutListener(){
-                @Override public void onGlobalLayout(){
-                    int [] location = new int[2];
-                    selectedImage.getLocationOnScreen(location);
-                    xOffset = location[0];
-                    yOffset = location[1];
-                    Log.i("hell", "main image x offset: " + xOffset);
-                    Log.i("hell", "main image y offset: " + yOffset);
-                    runOnUiThread(drawBoundingBoxes());
-                }
-            };
-            vto.addOnGlobalLayoutListener(listener);
         } catch (Exception e) {
             e.printStackTrace();
+            Log.e(Bunniez.TAG, "Error in SelectFaces --> onCreate");
         }
     }
+
+    private void initLayoutListener() {
+        ViewTreeObserver vto = selectedImage.getViewTreeObserver();
+        listener = new ViewTreeObserver.OnGlobalLayoutListener(){
+            @Override public void onGlobalLayout(){
+                runOnUiThread(drawBoundingBoxes());
+            }
+        };
+        vto.addOnGlobalLayoutListener(listener);
+    }
+
 
     private void initInstances() {
         Bunniez bunniez = (Bunniez) getApplicationContext();
@@ -85,9 +80,8 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         thumbnails = new ArrayList<>();
         fullSizeImages = new ArrayList<>();
         currentBoxesList = client.boxes.get(selectedImageIndex);
-        xOffset = 0;
-        yOffset = 0;
-
+        chosenImagesForBoxes = new ArrayList<>(currentBoxesList.size());
+        chosenBoxesIndices = new ArrayList<>(imagePaths.size());
         rightArrow = findViewById(R.id.right_arrow);
         leftArrow = findViewById(R.id.left_arrow);
         selectedImage = findViewById(R.id.selectedImage);
@@ -103,6 +97,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         boxesButtons = new ArrayList<>();
         for(int i = 0; i< currentBoxesList.size(); i++) {
             Button box = new Button(this);
+            box.setClickable(true);
             box.setOnClickListener(this);
             box.setId(i);
             boxesButtons.add(box);
@@ -112,11 +107,11 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     private void setOnClickListenters() {
         rightArrow.setOnClickListener(this);
         leftArrow.setOnClickListener(this);
-        selectedImage.setOnClickListener(this);
         rightThumbnail.setOnClickListener(this);
         leftThumbnail.setOnClickListener(this);
         middleThumbnail.setOnClickListener(this);
         doneButton.setOnClickListener(this);
+
 
         selectedImage.setClipToOutline(true);
         rightThumbnail.setClipToOutline(true);
@@ -179,7 +174,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                     int h = translatedBox.h;
                     int w = translatedBox.w;
                     Button box = boxesButtons.get(i);
-                    box.setBackgroundResource(R.drawable.bounding_box);
+                    box.setBackgroundResource(R.drawable.image_background);
                     box.setX(x);
                     box.setY(y);
                     box.setHeight(h);
@@ -200,7 +195,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     @Override
     public void onClick(View v) {
         ImageView prev = mapIndexToImage(selectedImageIndex);
-        prev.setBackgroundResource(R.drawable.image_background);
         switch (v.getId()) {
             case R.id.right_arrow:
                 onRightArrowPress();
@@ -219,7 +213,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
             case 0:
             case 1:
             case 2:
-                onBoundingBoxPress(v);
+                onBoundingBoxPress(v, prev);
                 break;
         }
         handleIndexChange();
@@ -252,6 +246,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void handleIndexChange() {
+        initLayoutListener();
         ImageView currentThumbnail = mapIndexToImage(selectedImageIndex);
         currentThumbnail.setBackgroundResource(R.drawable.image_border);
         currentBoxesList = client.boxes.get(selectedImageIndex);
@@ -277,15 +272,21 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
          loaderIntent.putExtra("display", getString(R.string.loader_prepare));
          loaderIntent.putExtra("request", RequestTypes.PROCESS);
          loaderIntent.putStringArrayListExtra("imagePaths", imagePaths);
-         loaderIntent.putIntegerArrayListExtra("indices", chosenBoxes);
+         loaderIntent.putIntegerArrayListExtra("indices", chosenImagesForBoxes);
          if(loaderIntent.resolveActivity(getPackageManager()) != null) {
              startActivityForResult(loaderIntent, MainActivity.HTTP_LOADER_REQUEST);
          }
      }
 
-     private void onBoundingBoxPress(View v) {
-        int boxIndex = boxesButtons.indexOf(v);
-        chosenBoxes.set(boxIndex, selectedImageIndex);
+
+
+     private void onBoundingBoxPress(View v, View prev) {
+         prev.setBackgroundResource(R.drawable.image_background);
+         int boxIndex = boxesButtons.indexOf(v);
+        if(boxIndex != -1 && boxIndex < chosenImagesForBoxes.size()) {
+            v.setBackgroundResource(R.drawable.bounding_box);
+            chosenImagesForBoxes.set(boxIndex, selectedImageIndex);
+        }
      }
 
 
