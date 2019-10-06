@@ -205,17 +205,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         // TODO: error getting file from gallery
                     }
                     imageFiles.add(f);
-
-//                    mArrayUri.add(uri);
-//                    // Get the cursor
-//                    Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
-//                    // Move to first row
-//                    cursor.moveToFirst();
-//
-//                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-//                    imageEncoded = cursor.getString(columnIndex);
-//                    imagesEncodedList.add(imageEncoded);
-//                    cursor.close();
                 }
             }
         }

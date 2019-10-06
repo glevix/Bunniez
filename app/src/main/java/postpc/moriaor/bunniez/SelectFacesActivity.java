@@ -290,7 +290,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
          loaderIntent.putStringArrayListExtra("imagePaths", imagePaths);
          loaderIntent.putIntegerArrayListExtra("indices", chosenImagesForBoxes);
          if(loaderIntent.resolveActivity(getPackageManager()) != null) {
-             startActivityForResult(loaderIntent, MainActivity.HTTP_LOADER_REQUEST);
+             startActivity(loaderIntent);
          }
      }
 
@@ -305,11 +305,4 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         }
      }
 
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        selectedImage.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
-
-    }
 }
