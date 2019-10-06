@@ -96,9 +96,9 @@
         android:layout_height="60dp"
         app:layout_constraintBottom_toTopOf="@+id/done_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/rightImage"
         app:layout_constraintTop_toBottomOf="@id/selectedImage"
         android:layout_marginStart="15dp"
+        android:layout_marginEnd="10dp"
         android:background="@drawable/arrow"/>
 
     <Button
