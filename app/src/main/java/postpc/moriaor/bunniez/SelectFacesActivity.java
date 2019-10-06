@@ -45,6 +45,11 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
     ArrayList<BoundingBox> currentBoxesList;
 
+    int viewX;
+    int viewY;
+    int viewWidth;
+    int viewHeight;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,10 +72,17 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         ViewTreeObserver vto = selectedImage.getViewTreeObserver();
         listener = new ViewTreeObserver.OnGlobalLayoutListener(){
             @Override public void onGlobalLayout(){
+                int [] xy = new int[2];
+                selectedImage.getLocationOnScreen(xy);
+                viewX = xy[0];
+                viewY = xy[1];
+                viewWidth = selectedImage.getWidth();
+                viewHeight = selectedImage.getHeight();
                 runOnUiThread(drawBoundingBoxes());
             }
         };
         vto.addOnGlobalLayoutListener(listener);
+        selectedImage.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
     }
 
 
@@ -144,12 +156,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
 
     private BoundingBox translateBoundingBox(BoundingBox box) {
         BoundingBox out = new BoundingBox();
-        int [] xy = new int[2];
-        selectedImage.getLocationOnScreen(xy);
-        int viewX = xy[0];
-        int viewY = xy[1];
-        int viewWidth = selectedImage.getWidth();
-        int viewHeight = selectedImage.getHeight();
         int imWidth = selected.getWidth();
         int imHeight = selected.getHeight();
         float wScaleFactor = (float)viewWidth / (float)imWidth;
@@ -246,12 +252,12 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void handleIndexChange() {
-        initLayoutListener();
         ImageView currentThumbnail = mapIndexToImage(selectedImageIndex);
         currentThumbnail.setBackgroundResource(R.drawable.image_border);
         currentBoxesList = client.boxes.get(selectedImageIndex);
         selected = fullSizeImages.get(selectedImageIndex);
         selectedImage.setImageBitmap(selected);
+        drawBoundingBoxes().run();
 
     }
 
