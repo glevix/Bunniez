@@ -57,9 +57,9 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         setContentView(R.layout.activity_select_faces);
         imagePaths = getIntent().getStringArrayListExtra("imagePaths");
         initInstances();
+        initLayoutListener();
         setOnClickListenters();
         try {
-            initLayoutListener();
             saveImagesBitmaps();
             loadImages();
         } catch (Exception e) {
@@ -79,10 +79,11 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                 viewWidth = selectedImage.getWidth();
                 viewHeight = selectedImage.getHeight();
                 runOnUiThread(drawBoundingBoxes());
+                selectedImage.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
+
             }
         };
         vto.addOnGlobalLayoutListener(listener);
-        selectedImage.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
     }
 
 
@@ -102,7 +103,6 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         middleThumbnail = findViewById(R.id.middleImage);
         doneButton = findViewById(R.id.done_button);
 
-        initBoxesButtons();
     }
 
     private void initBoxesButtons() {
@@ -171,6 +171,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         return new Runnable() {
             @Override
             public void run() {
+                initBoxesButtons();
                 ConstraintLayout container = SelectFacesActivity.this.findViewById(R.id.container);
                 removeButtons(container);
                 for(int i = 0; i < boxesButtons.size(); i++) {
