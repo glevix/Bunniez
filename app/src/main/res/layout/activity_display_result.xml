@@ -37,6 +37,19 @@
         android:layout_marginTop="100dp"/>
 
     <Button
+        android:id="@+id/editButton"
+        android:layout_width="155dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/button_shape"
+        android:text="@string/Edit"
+        android:textColor="@color/white"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/saveButton"
+        android:layout_marginTop="22dp" />
+
+    <Button
         android:id="@+id/newButton"
         android:layout_width="155dp"
         android:layout_height="40dp"
@@ -46,7 +59,7 @@
         android:textColor="@color/white"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/saveButton"
+        app:layout_constraintTop_toBottomOf="@id/editButton"
         android:layout_marginTop="22dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
