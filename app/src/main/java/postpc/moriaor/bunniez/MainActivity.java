@@ -365,10 +365,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putStringArrayList(Bunniez.IMAGE_PATHS_KEY, imagePaths);
-        outState.putString(Bunniez.CLIENT_ID_KET, client.id);
-        outState.putInt(PIC_COUNT_KEY, currentPicCount);
-        outState.putString(CURRENT_PATH_KEY, currentPhotoUri.getPath());
+        if (client != null) {
+            outState.putString(Bunniez.CLIENT_ID_KET, client.id);
+        }
 
+        outState.putInt(PIC_COUNT_KEY, currentPicCount);
+        if (currentPhotoUri != null) {
+            outState.putString(CURRENT_PATH_KEY, currentPhotoUri.getPath());
+        }
         // call superclass to save any view hierarchy
         super.onSaveInstanceState(outState);
     }
