@@ -30,6 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    static final String CURRENT_PATH_KEY = "currentPath";
+    static final String TITLE_KEY = "title";
+    static final String PIC_COUNT_KEY = "picCount";
+
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_GALLERY = 0;
     static final int HTTP_LOADER_REQUEST = 221;
@@ -37,10 +41,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     static final int MY_CAMERA_PERMISSION_CODE = 0;
     static final int ALL_PERMISSION_CODE = 47;
     static final int PIC_NUM_LIMIT = 3;
-    private int PIC_NUM = 1;
 
+
+    private int currentPicCount = 1;
+    Bunniez bunniez;
+    BunniezClient client;
     private Uri currentPhotoUri;
-    private String title;
     private ArrayList<String> imagePaths;
     MainUtils mainUtils;
 
@@ -68,27 +74,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        Bunniez bunniez = (Bunniez) getApplicationContext();
+        bunniez = (Bunniez) getApplicationContext();
         bunniez.initNewClient();
-        mainUtils = new MainUtils(this);
         imagePaths = new ArrayList<>();
-        TextView titleView = findViewById(R.id.welcome_title);
-        TextView subtitleView = findViewById(R.id.lets_start);
-        Intent createdMe = getIntent();
-        if(createdMe != null){
-            title = createdMe.getStringExtra("title");
-            if(title != null) {
-                titleView.setText(title);
-                subtitleView.setVisibility(View.INVISIBLE);
-            }
+        setContentView(R.layout.activity_main);
+        client = bunniez.getClient();
+        mainUtils = new MainUtils(this);
+        String title = getIntent().getStringExtra(TITLE_KEY);
+        if(title != null) {
+            setTitle(title);
         }
         Button cameraButton = findViewById(R.id.camera_button);
         Button galleryButton = findViewById(R.id.gallery_button);
         cameraButton.setOnClickListener(this);
         galleryButton.setOnClickListener(this);
     }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        imagePaths = savedInstanceState.getStringArrayList(Bunniez.IMAGE_PATHS_KEY);
+        String clientId = savedInstanceState.getString(Bunniez.CLIENT_ID_KET);
+        String currentImagePath = savedInstanceState.getString(CURRENT_PATH_KEY);
+        String title = savedInstanceState.getString(TITLE_KEY);
+        currentPicCount = savedInstanceState.getInt(PIC_COUNT_KEY);
+        currentPhotoUri = Uri.parse(currentImagePath);
+        if(clientId != null) {
+            bunniez.reinitClient(clientId);
+        } else {
+            bunniez.initNewClient();
+        }
+        if(title != null) {
+            setTitle(title);
+        }
+    }
+
+    private void setTitle(String title) {
+        TextView titleView = findViewById(R.id.welcome_title);
+        TextView subtitleView = findViewById(R.id.lets_start);
+        titleView.setText(title);
+        subtitleView.setVisibility(View.INVISIBLE);
+    }
+
 
     @Override
     public void onClick(View v) {
@@ -150,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                 File photoFile = null;
                 try {
-                    photoFile = ImageUtils.createImageFile(this, PIC_NUM);
+                    photoFile = ImageUtils.createImageFile(this, currentPicCount);
                 } catch (IOException ex) {
                     // Error occurred while creating the File
                     Log.i("error", "IOException");
@@ -266,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for (File fin : imageFiles) {
             File photoFile = null;
             try {
-                photoFile = ImageUtils.createImageFile(this, PIC_NUM);
+                photoFile = ImageUtils.createImageFile(this, currentPicCount);
                 if (photoFile != null && photoFile.exists()) {
                     copyFile(fin, photoFile);
                 } else {
@@ -277,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.i("error", "IOException");
             }
             imagePaths.add(photoFile.getAbsolutePath());
-            PIC_NUM++;
+            currentPicCount++;
         }
 
         // Proceed to upload
@@ -285,15 +311,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void onCameraResult() {
-        if(PIC_NUM >= PIC_NUM_LIMIT) {
+        if(currentPicCount >= PIC_NUM_LIMIT) {
             if(currentPhotoUri != null && currentPhotoUri.getPath() != null) {
                 imagePaths.add(currentPhotoUri.getPath());
                 this.onDoneSelection();
-                PIC_NUM = 0;
+                currentPicCount = 0;
             }
         } else {
             imagePaths.add(currentPhotoUri.getPath());
-            PIC_NUM ++;
+            currentPicCount++;
             this.dispatchTakePictureIntent();
         }
     }
@@ -333,12 +359,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(this, "storage permission denied", Toast.LENGTH_LONG).show();
             }
         }
-        else if (requestCode == ALL_PERMISSION_CODE) {
-//                Toast.makeText(this, "Permissions requested", Toast.LENGTH_LONG).show();
-//                dispatchTakePictureIntent();
+    }
 
-        }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putStringArrayList(Bunniez.IMAGE_PATHS_KEY, imagePaths);
+        outState.putString(Bunniez.CLIENT_ID_KET, client.id);
+        outState.putInt(PIC_COUNT_KEY, currentPicCount);
+        outState.putString(CURRENT_PATH_KEY, currentPhotoUri.getPath());
+
+        // call superclass to save any view hierarchy
+        super.onSaveInstanceState(outState);
     }
-    }
+}
 
 
