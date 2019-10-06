@@ -45,7 +45,7 @@ public class DisplayResultActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Bunniez app = (Bunniez) getApplicationContext();
                 app.getClient().do_end();
-                app.initNewClient();
+//                app.initNewClient();
                 Intent reset = new Intent(getApplicationContext(), MainActivity.class);
                 reset.putExtra(MainActivity.TITLE_KEY, getString(R.string.restart_title));
                 if(reset.resolveActivity(getPackageManager()) != null) {
