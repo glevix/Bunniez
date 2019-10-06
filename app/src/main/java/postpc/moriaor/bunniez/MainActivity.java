@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     photoFile = ImageUtils.createImageFile(this, currentPicCount);
                 } catch (IOException ex) {
                     // Error occurred while creating the File
-                    Log.i("error", "IOException");
+                    Log.d(Bunniez.TAG, "IOException");
                 }
 
                 if (photoFile != null && photoFile.exists()) {
@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
 
                     } catch (Exception e) {
-                        Log.d(Bunniez.TAG, "oh no");
+                        Log.d(Bunniez.TAG, "Exception was thrown while opening camera");
                     }
 
 
@@ -223,9 +223,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void startLoaderActivity(String display, String request) {
         Intent loaderIntent = new Intent(this, LoaderActivity.class);
-        loaderIntent.putExtra("display", display);
-        loaderIntent.putExtra("request", request);
-        loaderIntent.putStringArrayListExtra("imagePaths", imagePaths);
+        loaderIntent.putExtra(LoaderActivity.DISPLAY_KEY, display);
+        loaderIntent.putExtra(LoaderActivity.REQUEST_KEY, request);
+        loaderIntent.putStringArrayListExtra(Bunniez.IMAGE_PATHS_KEY, imagePaths);
         if(loaderIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(loaderIntent, HTTP_LOADER_REQUEST);
         }
@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             };
             mainUtils.popAlertDialog(retry, text,
-                    "Something went wrong. Please try again soon.",
+                    getString(R.string.error_message),
                     "OK",
                     "Cancel");
         }

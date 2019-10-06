@@ -104,7 +104,8 @@ public class LoaderActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            returnWResultWithDelay(RESULT_CANCELED, "Request Failed With Exception");
+            Log.d(Bunniez.TAG, getString(R.string.on_exception));
+            returnWResultWithDelay(RESULT_CANCELED, request + getString(R.string.on_exception));
         }
     }
 
@@ -233,7 +234,7 @@ public class LoaderActivity extends AppCompatActivity {
         try {
             output = ImageUtils.createImageFile(this, "output");
         } catch (IOException e) {
-            //TODO error
+            Log.i(Bunniez.TAG, getString(R.string.process_exception));
         }
         if (output == null || !output.exists()) {
             //TODO error
@@ -265,7 +266,7 @@ public class LoaderActivity extends AppCompatActivity {
 
     private void startSelectFacesActivity() {
         Intent selectFacesIntent = new Intent(this, SelectFacesActivity.class);
-        selectFacesIntent.putStringArrayListExtra("imagePaths", imagePaths);
+        selectFacesIntent.putStringArrayListExtra(Bunniez.IMAGE_PATHS_KEY, imagePaths);
         if(selectFacesIntent.resolveActivity(getPackageManager()) != null) {
             startActivity(selectFacesIntent);
         }
@@ -279,7 +280,7 @@ public class LoaderActivity extends AppCompatActivity {
         if (imagePath == null) {
             //TODO error
         }
-        displayResultIntent.putExtra("imagePath", imagePath);
+        displayResultIntent.putExtra(DisplayResultActivity.IMAGE_PATH_KEY, imagePath);
         if(displayResultIntent.resolveActivity(getPackageManager()) != null) {
             finish();
             startActivity(displayResultIntent);

@@ -14,6 +14,12 @@
     <string name="instructions">Tap the faces you want in your picture</string>
     <string name="loader_prepare">Preparing your photos&#8230;</string>
     <string name="loader_upload">Uploading Your Photos&#8230;</string>
+    <string name="restart_title">What would you like to do next?</string>
+    <string name="save_text">Image was saved to your gallery</string>
+    <string name="select_all_toast">Please select all faces</string>
+    <string name="error_message">Something went wrong. Please try again soon.</string>
+    <string name="process_exception">Exception was thrown while trying to save image.</string>
+    <string name="on_exception"> Request Failed with an Exception</string>
 
 
 </resources>
