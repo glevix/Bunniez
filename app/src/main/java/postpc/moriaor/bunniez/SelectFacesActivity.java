@@ -59,7 +59,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         imagePaths = getIntent().getStringArrayListExtra("imagePaths");
         initInstances();
         initLayoutListener();
-        setOnClickListenters();
+        setOnClickListeners();
         try {
             saveImagesBitmaps();
             loadImages();
@@ -123,7 +123,7 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
         didInitBoxes = true;
     }
 
-    private void setOnClickListenters() {
+    private void setOnClickListeners() {
         rightArrow.setOnClickListener(this);
         leftArrow.setOnClickListener(this);
         rightThumbnail.setOnClickListener(this);
