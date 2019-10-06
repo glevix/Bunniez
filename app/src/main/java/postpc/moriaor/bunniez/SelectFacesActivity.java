@@ -10,6 +10,7 @@ import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
@@ -67,6 +68,8 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                     selectedImage.getLocationOnScreen(location);
                     xOffset = location[0];
                     yOffset = location[1];
+                    Log.i("hell", "main image x offset: " + xOffset);
+                    Log.i("hell", "main image y offset: " + yOffset);
                     runOnUiThread(drawBoundingBoxes());
                 }
             };
@@ -144,6 +147,25 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
     }
 
 
+    private BoundingBox translateBoundingBox(BoundingBox box) {
+        BoundingBox out = new BoundingBox();
+        int [] xy = new int[2];
+        selectedImage.getLocationOnScreen(xy);
+        int viewX = xy[0];
+        int viewY = xy[1];
+        int viewWidth = selectedImage.getWidth();
+        int viewHeight = selectedImage.getHeight();
+        int imWidth = selected.getWidth();
+        int imHeight = selected.getHeight();
+        float wScaleFactor = (float)viewWidth / (float)imWidth;
+        float hScaleFactor = (float)viewHeight / (float)imHeight;
+        out.x = (int) (viewX + (box.x * wScaleFactor));
+        out.y = (int) (viewY / 2 + (box.y * hScaleFactor));
+        out.w = (int) (box.w * wScaleFactor);
+        out.h = (int) (box.h * hScaleFactor);
+        return out;
+    }
+
     private Runnable drawBoundingBoxes() {
         return new Runnable() {
             @Override
@@ -151,14 +173,15 @@ public class SelectFacesActivity extends AppCompatActivity implements View.OnCli
                 ConstraintLayout container = SelectFacesActivity.this.findViewById(R.id.container);
                 removeButtons(container);
                 for(int i = 0; i < boxesButtons.size(); i++) {
-                    int x = currentBoxesList.get(i).x;
-                    int y = currentBoxesList.get(i).y;
-                    int h = currentBoxesList.get(i).h;
-                    int w = currentBoxesList.get(i).w;
+                    BoundingBox translatedBox = translateBoundingBox(currentBoxesList.get(i));
+                    int x = translatedBox.x;
+                    int y = translatedBox.y;
+                    int h = translatedBox.h;
+                    int w = translatedBox.w;
                     Button box = boxesButtons.get(i);
                     box.setBackgroundResource(R.drawable.bounding_box);
-                    box.setX(x + xOffset);
-                    box.setY(y + yOffset / 2);
+                    box.setX(x);
+                    box.setY(y);
                     box.setHeight(h);
                     box.setWidth(w);
                     container.addView(box);

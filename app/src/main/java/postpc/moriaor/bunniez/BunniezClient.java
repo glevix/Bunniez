@@ -152,6 +152,7 @@ class BunniezClient {
     void do_upload(final Runnable runnable, String path, int index) {
         MediaType mt = MediaType.parse("application/octet-stream");
         File file = new File(path);
+        Log.i("BunniezClient", "Upload file size: " + Long.toString(file.length()));
         Request request = new Request.Builder()
                 .put(RequestBody.create(mt, file))
                 .header("request", "upload")
@@ -164,12 +165,15 @@ class BunniezClient {
             @Override
             public void onFailure(Call call, IOException e) {
                 error = true;
+                Log.i("BunniezClient", e.toString());
                 runnable.run();
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 error = !response.header("params", "").equals("ok");
+                if (error)
+                    Log.i("BunniezClient", "do_upload received wrong response params");
                 runnable.run();
             }
         };
@@ -231,6 +235,7 @@ class BunniezClient {
             @Override
             public void onFailure(Call call, IOException e) {
                 error = true;
+                Log.e("BunniezClient", e.toString());
                 runnable.run();
             }
 
@@ -252,16 +257,21 @@ class BunniezClient {
                         }
                         in.close();
                         if (offset != contentLength) {
+                            Log.e("BunniezClient", "offset != contentLength");
                             error = true;
                         } else {
                             FileOutputStream fileOutputStream = new FileOutputStream(out);
                             fileOutputStream.write(data);
                             fileOutputStream.flush();
                             fileOutputStream.close();
+                            Log.i("BunniezClient", "ok");
                         }
                     } catch (IOException | NullPointerException e) {
+                        Log.e("BunniezClientt", e.toString());
                         error = true;
                     }
+                } else {
+                    Log.e("BunniezClient", "Wrong response header");
                 }
                 runnable.run();
             }

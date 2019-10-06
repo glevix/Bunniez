@@ -135,6 +135,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     _parameters = 'file exists'
                 else:
                     file_length = int(self.headers['Content-Length'])
+                    print("\tContent-Length: " + str(file_length))
                     with open(filename, 'wb') as output_file:
                         output_file.write(self.rfile.read(file_length))
                     if not util.add_image(filename, int(parameters)):
