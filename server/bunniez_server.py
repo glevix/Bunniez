@@ -8,7 +8,7 @@ import socket
 from requests import get
 from distutils.dir_util import copy_tree
 
-DEBUG = True
+DEBUG = False
 
 SERVER_WORKING_DIR = 'server_working'
 
